@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "472157341365",
+    "project_id": "letsseeifthisworks-d2134",
+    "storage_bucket": "letsseeifthisworks-d2134.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:472157341365:android:114d2faaa81053171de0fc",
+        "android_client_info": {
+          "package_name": "com.example.google_firebase_signin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "472157341365-22lpr0rrt0rlj7dueflupjgdmmj77udb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.google_firebase_signin",
+            "certificate_hash": "95e7d098ff8908f1de6a84a08ef66b7687a022ca"
+          }
+        },
+        {
+          "client_id": "472157341365-ega3n2mhtff9012cidk5jch1j94d9o4n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCxckp52eQitb0i40PwoUD7_dtz11X1iSA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "472157341365-ega3n2mhtff9012cidk5jch1j94d9o4n.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "472157341365-qkfdh7s37cira8rk92p467gg7cbd9gdh.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.timelessfusionapps.smartTalk"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
