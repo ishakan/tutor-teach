@@ -19,6 +19,10 @@ class LikeAnimation extends StatefulWidget {
   _LikeAnimationState createState() => _LikeAnimationState();
 }
 
+/**
+    Class for like animation on service opportunity posts
+ */
+
 class _LikeAnimationState extends State<LikeAnimation>
     with SingleTickerProviderStateMixin {
   late AnimationController controller;

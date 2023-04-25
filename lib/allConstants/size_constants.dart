@@ -43,3 +43,7 @@ class Sizes {
 
   static const double dimen_300 = 300;
 }
+
+/**
+ * Setting constant size variables
+ */

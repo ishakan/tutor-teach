@@ -14,6 +14,8 @@ class ChatUser extends Equatable {
   final String testing;
   final String isTutor;
   final String email;
+  final String schoolName;
+  final String fcmToken;
 
   const ChatUser(
       {required this.id,
@@ -24,8 +26,13 @@ class ChatUser extends Equatable {
       required this.testing,
       required this.isTutor,
       required this.email,
-
+      required this.schoolName,
+      required this.fcmToken,
       });
+
+  /**
+   * Creates blueprint for any student user, instating neccessary varaibles
+   */
 
   ChatUser copyWith({
     String? id,
@@ -36,6 +43,8 @@ class ChatUser extends Equatable {
     String? email,
     String? tutor,
     String? email_address,
+    String? school_name,
+    String? fcmToken,
 
   }) {
     return ChatUser(
@@ -46,7 +55,9 @@ class ChatUser extends Equatable {
           aboutMe: email ?? aboutMe,
           testing: testing ?? this.testing,
           isTutor: tutor ?? isTutor,
-          email: email_address ?? this.email);
+          email: email_address ?? this.email,
+          schoolName: school_name ?? this.schoolName,
+          fcmToken: fcmToken ?? this.fcmToken);
   }
 
 
@@ -58,7 +69,8 @@ class ChatUser extends Equatable {
         FirestoreConstants.testing: testing,
         FirestoreConstants.isTutor: isTutor,
         FirestoreConstants.email: email,
-
+        FirestoreConstants.schoolName: schoolName,
+        FirestoreConstants.fcmToken: fcmToken,
   };
   factory ChatUser.fromDocument(DocumentSnapshot snapshot) {
     String photoUrl = "";
@@ -68,6 +80,8 @@ class ChatUser extends Equatable {
     String testing = "";
     String isTutor = "";
     String email = "";
+    String schoolName = "";
+    String fcmToken = "";
 
     try {
       photoUrl = snapshot.get(FirestoreConstants.photoUrl);
@@ -77,6 +91,8 @@ class ChatUser extends Equatable {
       testing = snapshot.get(FirestoreConstants.testing);
       isTutor = snapshot.get(FirestoreConstants.isTutor);
       email = snapshot.get(FirestoreConstants.email);
+      schoolName = snapshot.get(FirestoreConstants.schoolName);
+      fcmToken = snapshot.get(FirestoreConstants.fcmToken);
 
     } catch (e) {
       if (kDebugMode) {
@@ -94,7 +110,9 @@ class ChatUser extends Equatable {
         aboutMe: aboutMe,
         testing: testing,
         isTutor: isTutor,
-        email: email);
+        email: email,
+        schoolName: schoolName,
+        fcmToken: fcmToken);
   }
 
   static ChatUser fromSnap(DocumentSnapshot snap) {
@@ -103,17 +121,19 @@ class ChatUser extends Equatable {
     return ChatUser(
       id: snapshot["id"],
       photoUrl: snapshot["photoUrl"],
-      displayName: snapshot["displayNae"],
+      displayName: snapshot["displayName"],
       phoneNumber: snapshot["phoneNumber"],
       aboutMe: snapshot["aboutMe"],
       testing: snapshot["testing"],
       isTutor: snapshot["isTutor"],
-      email: snapshot["email"]);
+      email: snapshot["email"],
+      schoolName: snapshot["schoolName"],
+      fcmToken: snapshot["fcmToken"]);
 
   }
 
   // , historyState, mathState, artState, humanGeoState, civicsState, physicsState, elaState, languageState
   @override
   // TODO: implement props
-  List<Object?> get props => [id, photoUrl, displayName, phoneNumber, aboutMe, testing, isTutor, email];
+  List<Object?> get props => [id, photoUrl, displayName, phoneNumber, aboutMe, testing, isTutor, email, schoolName, fcmToken];
 }

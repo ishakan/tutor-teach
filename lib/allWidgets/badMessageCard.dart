@@ -43,6 +43,12 @@ class _badMessageCardState extends State<badMessageCard> {
   String nameTo = "";
   String senderPhotoUrl = "", recieverPhotoUrl = "";
 
+
+  /**
+      Class used to create structure for admins to view bad messages sent between tutors and studnets.
+      Allows administrators to see which students sent the bad message, who recieved, timestamp
+   */
+
   @override
   void initState() {
     super.initState();

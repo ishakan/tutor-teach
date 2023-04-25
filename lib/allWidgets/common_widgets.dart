@@ -12,6 +12,10 @@ Widget errorContainer() {
   );
 }
 
+/**
+    Class for loading widget
+ */
+
 Widget chatImage({required String imageSrc, required Function onTap}) {
   return OutlinedButton(
     onPressed: onTap(),

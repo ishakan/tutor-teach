@@ -22,15 +22,23 @@ import 'package:google_firebase_signin/utilities/keyboard_utils.dart';
 
 class GoToTutorsPage extends StatefulWidget {
   // const GoToTutorsPage({Key? key}) : super(key: key);
+  final String schoolName;
 
   const GoToTutorsPage({
     Key? key,
+    required this.schoolName,
+
   }) : super(key: key);
 
 
   @override
   State<GoToTutorsPage> createState() => _GoToTutorsPageState();
 }
+
+/**
+ * page to go to tutors for specific subject
+ */
+
 
 class _GoToTutorsPageState extends State<GoToTutorsPage> {
   final GoogleSignIn googleSignIn = GoogleSignIn();
@@ -76,6 +84,10 @@ class _GoToTutorsPageState extends State<GoToTutorsPage> {
     buttonClearController.close();
   }
 
+  /**
+   * initialzes all necessary varaibles
+   */
+
   @override
   void initState() {
     super.initState();
@@ -92,6 +104,11 @@ class _GoToTutorsPageState extends State<GoToTutorsPage> {
     scrollController.addListener(scrollListener);
     // holdIsAdmin = widget.isAdmin;
   }
+
+  /**
+   * crates different styles for each subject
+   */
+
 
   @override
   Widget build(BuildContext context) {
@@ -141,6 +158,10 @@ class _GoToTutorsPageState extends State<GoToTutorsPage> {
         minimumSize: const Size.fromHeight(100), // NEW
         textStyle: const TextStyle(fontSize: 20) );
 
+    /**
+     * builds widgets for each subject
+     */
+
     return Scaffold(
         appBar: AppBar(
           elevation: 0,
@@ -166,10 +187,11 @@ class _GoToTutorsPageState extends State<GoToTutorsPage> {
                         onPressed: () {
                           Navigator.push(
                               context, MaterialPageRoute(builder: (context) =>
-                                const scienceFeedScreen(fieldColors: [Color(0xff870000), Color(0xffE70000), Color(0xffFF6464),
+                                scienceFeedScreen(fieldColors: [Color(0xff870000), Color(0xffE70000), Color(0xffFF6464),
                                   Color(0xffD75B00), Color(0xffFF6C00), Color(0xffFFA25D), Color(0xffE8BE00), Color(0xffFFDF4C), Color(0xffFFF74C),
                                   Color(0xffFF5593), Color(0xffFFA3C4), Color(0xffFFDBA3), Color(0xffFFC0A3), Color(0xffCB7D37), Color(0xff9E5747)],
-                                    type: "Science")));
+                                    type: "Science",
+                                    schoolName: widget.schoolName,)));
                         },
                         child: Wrap(
                           children: <Widget>[
@@ -192,10 +214,11 @@ class _GoToTutorsPageState extends State<GoToTutorsPage> {
                         style: style2,
                         onPressed: () {
                           Navigator.push(
-                              context, MaterialPageRoute(builder: (context) => const scienceFeedScreen(fieldColors: [Color(0xffCC9D22), Color(0xffFFC11F), Color(0xffFFDF8D),
+                              context, MaterialPageRoute(builder: (context) => scienceFeedScreen(fieldColors: [Color(0xffCC9D22), Color(0xffFFC11F), Color(0xffFFDF8D),
                             Color(0xffD4DB3D), Color(0xffEFF90C), Color(0xffFBFFA0), Color(0xff8BAE22), Color(0xffADE014), Color(0xffE2FF8A),
                             Color(0xffD88A0D), Color(0xffFFB237), Color(0xffFFCC7B), Color(0xffFFD48F), Color(0xffC4A065), Color(0xffDCC900)],
-                              type: "Math")));
+                              type: "Math",
+                             schoolName: widget.schoolName,)));
                         },
                         child: Wrap(
                           children: <Widget>[
@@ -218,10 +241,10 @@ class _GoToTutorsPageState extends State<GoToTutorsPage> {
                         style: style3,
                         onPressed: () {
                           Navigator.push(
-                              context, MaterialPageRoute(builder: (context) => const scienceFeedScreen(fieldColors: [Color(0xff318B94), Color(0xff2AAAB6), Color(0xff28CFDF),
+                              context, MaterialPageRoute(builder: (context) => scienceFeedScreen(fieldColors: [Color(0xff318B94), Color(0xff2AAAB6), Color(0xff28CFDF),
                             Color(0xff79F3FF), Color(0xff001B8A), Color(0xff4867E7), Color(0xff1A38B6), Color(0xff869BF1), Color(0xff5A7EA2),
                             Color(0xff006DD9), Color(0xff0985FF), Color(0xff78BCFF), Color(0xffC3E1FF), Color(0xff1D9DA4), Color(0xff22DBE5)],
-                              type: "Literature")));
+                              type: "Literature", schoolName: widget.schoolName,)));
                         },
                         child: Wrap(
                           children: <Widget>[
@@ -244,10 +267,10 @@ class _GoToTutorsPageState extends State<GoToTutorsPage> {
                         style: style4,
                         onPressed: () {
                           Navigator.push(
-                              context, MaterialPageRoute(builder: (context) => const scienceFeedScreen(fieldColors: [Color(0xffF0B277), Color(0xff944800), Color(0xffC8710E),
+                              context, MaterialPageRoute(builder: (context) => scienceFeedScreen(fieldColors: [Color(0xffF0B277), Color(0xff944800), Color(0xffC8710E),
                             Color(0xffCA8D54), Color(0xffFF6C00), Color(0xffF68C13), Color(0xffFFCE95), Color(0xffE7A100), Color(0xffFFD472),
                             Color(0xffF1BF07), Color(0xffF3D97A), Color(0xffFFDBA3), Color(0xffEAE1C0), Color(0xffF7E610), Color(0xffFBD26C)],
-                              type: "Language")));
+                              type: "Language", schoolName: widget.schoolName,)));
                         },
                         child: Wrap(
                           children: <Widget>[
@@ -270,10 +293,10 @@ class _GoToTutorsPageState extends State<GoToTutorsPage> {
                         style: style5,
                         onPressed: () {
                           Navigator.push(
-                              context, MaterialPageRoute(builder: (context) => const scienceFeedScreen(fieldColors: [Color(0xff478E5C), Color(0xff3CAD5E), Color(0xff31D663),
+                              context, MaterialPageRoute(builder: (context) => scienceFeedScreen(fieldColors: [Color(0xff478E5C), Color(0xff3CAD5E), Color(0xff31D663),
                             Color(0xff34F400), Color(0xffBAF778), Color(0xffDAFFB1), Color(0xff005D08), Color(0xff038F0F), Color(0xff739175),
                             Color(0xffA7C6A9), Color(0xffB6F7BA), Color(0xff4AC38A), Color(0xff7AEDB7), Color(0xff7AEDC3), Color(0xffC0FAE5)],
-                              type: "Humanities")));
+                              type: "Humanities", schoolName: widget.schoolName)));
                         },
                         child: Wrap(
                           children: <Widget>[
@@ -302,100 +325,5 @@ class _GoToTutorsPageState extends State<GoToTutorsPage> {
         ));
   }
 
-
-  Widget buildItem(BuildContext context, DocumentSnapshot? documentSnapshot, String subject) {
-    final firebaseAuth = FirebaseAuth.instance;
-    if (documentSnapshot != null) {
-      ChatUser userChat = ChatUser.fromDocument(documentSnapshot);
-      //userChat.id == currentUserId ||
-      bool checkifTutor = (userChat.isTutor == "yes");
-
-      if (!checkifTutor) {
-        // return const SizedBox.shrink();
-        return Container(
-          height: 0,
-          width: 0,
-        );
-      } else {
-        return Container(
-          color: Colors.white,
-          child: TextButton(
-            onPressed: () {
-              if (KeyboardUtils.isKeyboardShowing()) {
-                KeyboardUtils.closeKeyboard(context);
-              }
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => ChatPage(
-                        peerId: userChat.id,
-                        peerAvatar: userChat.photoUrl,
-                        peerNickname: userChat.displayName,
-                        userAvatar: firebaseAuth.currentUser!.photoURL!,
-                      )));
-            },
-            child: ListTile(
-              leading: userChat.photoUrl.isNotEmpty
-                  ? ClipRRect(
-                borderRadius: BorderRadius.circular(Sizes.dimen_30),
-                child: Image.network(
-                  userChat.photoUrl,
-                  fit: BoxFit.cover,
-                  width: 50,
-                  height: 50,
-                  loadingBuilder: (BuildContext ctx, Widget child,
-                      ImageChunkEvent? loadingProgress) {
-                    if (loadingProgress == null) {
-                      return child;
-                    } else {
-                      return SizedBox(
-                        width: 50,
-                        height: 50,
-                        child: CircularProgressIndicator(
-                            color: Colors.grey,
-                            value: loadingProgress.expectedTotalBytes !=
-                                null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
-                                : null),
-                      );
-                    }
-                  },
-                  errorBuilder: (context, object, stackTrace) {
-                    return const Icon(Icons.account_circle, size: 50);
-                  },
-                ),
-              )
-                  : const Icon(
-                Icons.account_circle,
-                size: 50,
-              ),
-              title: Row(
-                  children: [
-                    Text(
-                      userChat.displayName,
-                      style: const TextStyle(color: Colors.black),
-                    ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Text(
-                        " - ${userChat.aboutMe}",
-                        style: const TextStyle(color: Colors.black),
-                      ),
-                    ),
-                  ]
-              ),
-            ),
-          ),
-        );
-      }
-    } else {
-      return Container(
-        height: 0,
-        width: 0,
-      );
-      // return const SizedBox.shrink();
-    }
-  }
 }
 

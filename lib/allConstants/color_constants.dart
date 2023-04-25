@@ -14,3 +14,7 @@ class AppColors {
   static const Color indyBlue = Color(0xFF414361);
   static const Color spaceCadet = Color(0xFF2a2d43);
 }
+
+/**
+ * Setting up constant varaibles for colors
+ */

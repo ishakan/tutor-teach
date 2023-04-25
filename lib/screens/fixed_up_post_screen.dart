@@ -8,12 +8,27 @@ import 'package:google_firebase_signin/providers/user_provider.dart';
 import 'package:google_firebase_signin/resources/firestore_methods.dart';
 import 'package:google_firebase_signin/utilities/colors.dart';
 import 'package:google_firebase_signin/utilities/utils.dart';
+import 'package:profanity_filter/profanity_filter.dart';
 import 'package:provider/provider.dart';
+import 'package:sentiment_dart/sentiment_dart.dart';
 
 import '../providers/profile_provider.dart';
 
+
+/**
+ * page displays uploading page for users to post service hour opporutnity
+ */
+
 class FixedUpPost extends StatefulWidget {
-  const FixedUpPost({Key? key}) : super(key: key);
+
+  final String schoolName;
+  // final bool isAdmin;
+  const FixedUpPost({
+    Key? key,
+    required this.schoolName,
+  }) : super(key: key);
+
+  // const FixedUpPost({Key? key}) : super(key: key);
 
   @override
   _FixedUpPostState createState() => _FixedUpPostState();
@@ -32,7 +47,15 @@ class _FixedUpPostState extends State<FixedUpPost> {
     });
   }
 
+  /**
+   * postsImage for uploading posts
+   * @param uid
+   * @param username
+   * @param profImage
+   */
   void postImage(String uid, String username, String profImage) async {
+
+
     setState(() {
       isLoading = true;
     });
@@ -47,6 +70,7 @@ class _FixedUpPostState extends State<FixedUpPost> {
           _titleController.text,
           username,
           profImage,
+          widget.schoolName,
         );
       } else {
         res = await FireStoreMethods().uploadPost(
@@ -56,6 +80,7 @@ class _FixedUpPostState extends State<FixedUpPost> {
           _titleController.text,
           username,
           profImage,
+          widget.schoolName,
         );
       }
       if (res == "success") {
@@ -88,16 +113,16 @@ class _FixedUpPostState extends State<FixedUpPost> {
         return SimpleDialog(
           title: const Text('Choose a photo'),
           children: <Widget>[
-            SimpleDialogOption(
-                padding: const EdgeInsets.all(20),
-                child: const Text('Take a photo'),
-                onPressed: () async {
-                  Navigator.pop(context);
-                  Uint8List file = await pickImage(ImageSource.camera);
-                  setState(() {
-                    _file = file;
-                  });
-                }),
+            // SimpleDialogOption(
+            //     padding: const EdgeInsets.all(20),
+            //     child: const Text('Take a photo'),
+            //     onPressed: () async {
+            //       Navigator.pop(context);
+            //       Uint8List file = await pickImage(ImageSource.camera);
+            //       setState(() {
+            //         _file = file;
+            //       });
+            //     }),
             SimpleDialogOption(
                 padding: const EdgeInsets.all(20),
                 child: const Text('Choose from Gallery'),
@@ -117,6 +142,33 @@ class _FixedUpPostState extends State<FixedUpPost> {
             )
           ],
         );
+      },
+    );
+  }
+
+  showProfanityAlertDialog(BuildContext context) {
+    // set up the button
+    Widget okButton = TextButton(
+      child: Text("OK"),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+    );
+
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text("Can't Post!"),
+      content: Text("Posts are not allowed to contain any profanity or mean messages. Please fix your post in order to adhere to the required guidelines."),
+      actions: [
+        okButton,
+      ],
+    );
+
+    // show the dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
       },
     );
   }
@@ -151,52 +203,20 @@ class _FixedUpPostState extends State<FixedUpPost> {
   @override
   Widget build(BuildContext context) {
     late ProfileProvider profileProvider = context.read<ProfileProvider>();
-    //
-    // _file == null
-    //     ? Center(
-    //   child: IconButton(
-    //     icon: const Icon(
-    //       Icons.upload,
-    //     ),
-    //     onPressed: () => _selectImage(context),
-    //   ),
-    // )
-    //
+
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white24,
+        backgroundColor: AppColors.spaceCadet,
         leading: IconButton(
-          color: Colors.black,
-          icon: const Icon(Icons.arrow_back_ios),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.arrow_back)), //
         title: const Text(
           'Add a Post',
-          style: TextStyle(color: Colors.black),
+          style: TextStyle(color: Colors.white),
         ),
         centerTitle: false,
         actions: <Widget>[
-          // TextButton(
-          //   onPressed: () =>
-          //       postImage(
-          //         // photoUrl = profileProvider.getPrefs(FirestoreConstants.photoUrl) ?? "";
-          //
-          //         profileProvider.getPrefs(FirestoreConstants.id) ?? "",
-          //         profileProvider.getPrefs(FirestoreConstants.displayName) ??
-          //             "",
-          //         profileProvider.getPrefs(FirestoreConstants.photoUrl) ?? "",
-          //       ),
-          //   // child: const Text(
-          //   //   "Post",
-          //   //   style: TextStyle(
-          //   //       color: Colors.blueAccent,
-          //   //       fontWeight: FontWeight.bold,
-          //   //       fontSize: 16.0),
-          //   // ),
-          // )
         ],
       ),
       // POST FORM
@@ -212,19 +232,6 @@ class _FixedUpPostState extends State<FixedUpPost> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                // Text()
-                // TextFormField(
-                //   controller: _descriptionController//     filled: true, //<-- SEE HERE
-                //     fillColor: Colors.deepPurpleAccent, //<-- SEE HERE
-                //     border: UnderlineInputBorder(),
-                //     labelText: 'Enter your username',
-                //   ),
-                // ),
-                // CircleAvatar(
-                //   backgroundImage: NetworkImage(
-                //     profileProvider.getPrefs(FirestoreConstants.photoUrl) ?? "",
-                //   ),
-                // ),
                 Padding(padding: EdgeInsets.fromLTRB(8, 12, 8, 5),
                   child: SizedBox(
                     width: MediaQuery
@@ -327,16 +334,37 @@ class _FixedUpPostState extends State<FixedUpPost> {
                     ),
                     child: Text('Upload Post'),
                     onPressed: () {
-                      String description = _descriptionController.text;
-                      String title = _titleController.text;
-                      if (description.length > 0 && title.length > 0) {
-                        postImage(
-                          profileProvider.getPrefs(FirestoreConstants.id) ?? "",
-                          profileProvider.getPrefs(FirestoreConstants.displayName) ?? "",
-                          profileProvider.getPrefs(FirestoreConstants.photoUrl) ?? "",
-                        );
+                      final filter = ProfanityFilter();
+                      String content =  _descriptionController.text;
+                      content = content.toLowerCase();
+                      List<String> allWords = filter.wordsToFilterOutList;
+                      bool hasProfanity = false;
+
+                      print(Sentiment.analysis(content));
+                      SentimentResult holdSentimentAnalysis = Sentiment.analysis(content);
+                      if (holdSentimentAnalysis.score < 0) {
+                        hasProfanity = true;
+                      }
+
+                      for (int i =0; i< allWords.length; i++) {
+                        if (content.contains(allWords[i])) {
+                          hasProfanity = true; break;
+                        }
+                      }
+                      if (hasProfanity) {
+                        showProfanityAlertDialog(context);
                       } else {
-                        showAlertDialog(context);
+                        String description = _descriptionController.text;
+                        String title = _titleController.text;
+                        if (description.length > 0 && title.length > 0) {
+                          postImage(
+                            profileProvider.getPrefs(FirestoreConstants.id) ?? "",
+                            profileProvider.getPrefs(FirestoreConstants.displayName) ?? "",
+                            profileProvider.getPrefs(FirestoreConstants.photoUrl) ?? "",
+                          );
+                        } else {
+                          showAlertDialog(context);
+                        }
                       }
                     },
                   ),

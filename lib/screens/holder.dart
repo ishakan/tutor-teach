@@ -344,7 +344,7 @@
 //           mainAxisSize: MainAxisSize.min,
 //           children: [
 //             const Text(
-//               "TutorTeach",
+//               "EdiFly",
 //               style: TextStyle(
 //                   fontWeight: FontWeight.bold, fontSize: Sizes.dimen_18),
 //             ),

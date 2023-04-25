@@ -8,6 +8,13 @@ class StorageMethods {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
+
+  /**
+   * adds iamge to firebase storage
+   * @param childName - Id of post
+   * @param file - Id of user
+   * @param isPost - checks if input is valid post
+   */
   // adding image to firebase storage
   Future<String> uploadImageToStorage(String childName, Uint8List file, bool isPost) async {
     // creating location to our firebase storage

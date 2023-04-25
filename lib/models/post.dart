@@ -15,6 +15,10 @@ class Post {
   String photoUrl;
   int postId;
 
+  /**
+   * Creates blueprint for all posts, instating neccessary varaibles
+   */
+
    Post(
       {required this.idFrom,
         required this.post_description,

@@ -21,17 +21,28 @@ import 'package:provider/provider.dart';
 class PostCard extends StatefulWidget {
   final snap;
   final isAdmin;
-  const PostCard({
+  final schoolName;
+  const
+  PostCard({
     Key? key,
     required this.snap,
     required this.isAdmin,
+    required this.schoolName,
   }) : super(key: key);
 
   @override
   State<PostCard> createState() => _PostCardState();
 }
 
+
+/**
+    Structure for posts in service hour opportunity feed
+ */
+
 class _PostCardState extends State<PostCard> {
+
+  late DocumentReference _SchooldocRef;
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   bool isLikeAnimating = false;
   static const webScreenSize = 600;
@@ -53,7 +64,7 @@ class _PostCardState extends State<PostCard> {
   List likes = [];
   String uid = "";
   List bookMarkedPost = [];
-  late bool bookState = false;
+  // late bool bookState = false;
   bool checKIfGood = true;
   String tester = "";
 
@@ -62,17 +73,19 @@ class _PostCardState extends State<PostCard> {
   @override
   void initState() {
     super.initState();
+    _SchooldocRef =
+        FirebaseFirestore.instance.collection('schools').doc(widget.schoolName);
     profileProvider = context.read<ProfileProvider>();
     forAsync();
-    print(bookState);
+    // print(bookState);
     print(postId);
     print("THIS SET VALUE VALUE2");
   }
 
   void forAsync() async {
     readLocal();
-    bookState = await FireStoreMethods().tellIfContained(uid, postId);
-    print(bookState);
+    // bookState = await FireStoreMethods().tellIfContained(uid, postId, widget.schoolName);
+    // print(bookState);
     print(postId);
     print("THIS SET VALUE VALUE");
   }
@@ -83,7 +96,6 @@ class _PostCardState extends State<PostCard> {
       postId = widget.snap['postId'].toString();
 
       print("BOOK_MARK_STATUS");
-      getDataForSubject(false, "asdf");
 
       uid = profileProvider.getPrefs(FirestoreConstants.id) ?? "";
 
@@ -94,32 +106,32 @@ class _PostCardState extends State<PostCard> {
         widget.snap['bookMarked'] == null) {
         checKIfGood = false;
       }
-      // print(bookState);
-
     });
-    // print(bookState);
-    // print(postId);
-    // print("THIS SET VALUE VALUE2");
   }
 
 
-  Future<void> getDataForSubject(bool state, String name) async {
-    late LinkedHashMap<String, dynamic> holdsData;
+  /**
+      Function to delete post
 
-    DocumentReference documentReference = FirebaseFirestore.instance.collection('users').doc(uid);
-    List values = [];
-    await documentReference.get().then((snapshot) {
-      holdsData = snapshot.data() as LinkedHashMap<String, dynamic>;
-      values = holdsData.values.toList();
-      print(values);
-      print("VALUES");
-    });
+      @param postId - identified post
+   */
 
-  }
 
   deletePost(String postId) async {
     try {
-      await FireStoreMethods().deletePost(postId);
+      await FireStoreMethods().deletePost(postId, widget.schoolName);
+    } catch (err) {
+      showSnackBar(
+        context,
+        err.toString(),
+      );
+    }
+  }
+  // Future<String> reportPost(String postId, String schoolName, String posterId, String uid) async {
+
+  reportPost(String postId, String posterId) async {
+    try {
+      await FireStoreMethods().reportPost(postId, widget.schoolName, posterId, uid);
     } catch (err) {
       showSnackBar(
         context,
@@ -128,38 +140,26 @@ class _PostCardState extends State<PostCard> {
     }
   }
 
+  /**
+      Widget structure for posts
+   */
+
+
   @override
   Widget build(BuildContext context) {
-    // bool finalState = await FireStoreMethods().tellIfContained(uid, postId);
     if (!checKIfGood) {
       return Container(
         width: 0,
         height: 0,
       );
     } else {
-      print(bookState);
+      // print(bookState);
       print(postId);
       print("THIS SET VALUE3");
       late ProfileProvider user = context.read<ProfileProvider>();
 
       final width = MediaQuery.of(context).size.width;
       id = user.getPrefs(FirestoreConstants.id) ?? "";
-
-      final Future<bool> bookState3 = FireStoreMethods().tellIfContained(uid, postId);
-
-      final Stream<bool> _bids = (() {
-        late final StreamController<bool> controller;
-        controller = StreamController<bool>(
-          onListen: () async {
-            controller.add(await FireStoreMethods().tellIfContained(uid, postId));
-            print(FireStoreMethods().tellIfContained(uid, postId));
-            print("FIRE STORE METHODS TIC");
-            await controller.close();
-          },
-        );
-        return controller.stream;
-      })();
-
 
       return Container(
         decoration: BoxDecoration(
@@ -239,51 +239,110 @@ class _PostCardState extends State<PostCard> {
                           ),
                         ),
                       ),
-                      (widget.snap['idFrom'].toString() == id || widget.isAdmin)
-                          ? IconButton(
-                        onPressed: () {
-                          showDialog(
+                  IconButton(
+                      icon: const Icon(Icons.more_vert),
+                  onPressed: () {
+                        showDialog(
                             useRootNavigator: false,
                             context: context,
                             builder: (context) {
-                              return Dialog(
-                                child: ListView(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 16),
-                                    shrinkWrap: true,
-                                    children: [
-                                      'Delete',
-                                    ]
-                                        .map(
-                                          (e) => InkWell(
-                                          child: Container(
-                                            padding:
-                                            const EdgeInsets.symmetric(
-                                                vertical: 12,
-                                                horizontal: 16),
-                                            child: Text(e),
-                                          ),
-                                          onTap: () {
-                                            deletePost(
-                                              widget.snap['postId']
-                                                  .toString(),
-                                            );
-                                            // remove the dialog box
-                                            Navigator.of(context).pop();
-                                          }),
-                                    )
-                                        .toList()),
+                              return SimpleDialog(
+                                // title: const Text('Choose a photo'),
+                                children: <Widget>[
+                                  // SimpleDialogOption(
+                                  //     padding: const EdgeInsets.all(20),
+                                  //     child: const Text('Take a photo'),
+                                  //     onPressed: () async {
+                                  //       Navigator.pop(context);
+                                  //       Uint8List file = await pickImage(ImageSource.camera);
+                                  //       setState(() {
+                                  //         _file = file;
+                                  //       });
+                                  //     }),
+                                  Visibility(
+                                    visible: (widget.snap['idFrom']
+                                        .toString() == id || widget.isAdmin),
+                                    child: SimpleDialogOption(
+                                        padding: const EdgeInsets.all(20),
+                                        child: const Text('Delete Post'),
+                                        onPressed: () {
+                                          deletePost(
+                                            widget.snap['postId']
+                                                .toString(),
+                                          );
+                                          showSnackBar(
+                                            context,
+                                            'Post Deleted.',
+                                          );
+                                        }),
+                                  ),
+                                  SimpleDialogOption(
+                                    padding: const EdgeInsets.all(20),
+                                    child: const Text("Report Post"),
+                                    onPressed: () {
+                                      reportPost(
+                                        widget.snap['postId']
+                                            .toString(),
+                                        widget.snap['idFrom']
+                                            .toString(),
+                                      );
+                                      showSnackBar(
+                                        context,
+                                        'Post Reported.',
+                                      );
+                                    },
+                                  )
+                                ],
                               );
-                            },
-                          );
-                        },
-                        icon: const Icon(Icons.more_vert),
-                      )
-                          : IconButton(
-                        onPressed: () {
-                        },
-                        icon: const Icon(null),
-                      ),
+                            }
+                        );
+                      }
+                  ),
+                      // (widget.snap['idFrom'].toString() == id || widget.isAdmin)
+                      //     ? IconButton(
+                      //   onPressed: () {
+                      //     showDialog(
+                      //       useRootNavigator: false,
+                      //       context: context,
+                      //       builder: (context) {
+                      //         return Dialog(
+                      //           child: ListView(
+                      //               padding: const EdgeInsets.symmetric(
+                      //                   vertical: 16),
+                      //               shrinkWrap: true,
+                      //               children: [
+                      //                 'Delete',
+                      //               ]
+                      //                   .map(
+                      //                     (e) => InkWell(
+                      //                     child: Container(
+                      //                       padding:
+                      //                       const EdgeInsets.symmetric(
+                      //                           vertical: 12,
+                      //                           horizontal: 16),
+                      //                       child: Text(e),
+                      //                     ),
+                      //                     onTap: () {
+                      //                       deletePost(
+                      //                         widget.snap['postId']
+                      //                             .toString(),
+                      //                       );
+                      //                       // remove the dialog box
+                      //                       Navigator.of(context).pop();
+                      //                     }),
+                      //               )
+                      //                   .toList()),
+                      //         );
+                      //       },
+                      //     );
+                      //   },
+                      //   icon: const Icon(Icons.more_vert),
+                      // )
+                      //     : IconButton(
+                      //   onPressed: () {
+                      //   },
+                      //   icon: const Icon(null),
+                      // ),
                     ],
                   ),
                 ),
@@ -309,15 +368,15 @@ class _PostCardState extends State<PostCard> {
                           ),
                         ),
                       ),
-                      Container(
-                        child: Text(
-                          widget.snap['timestamp'].toString(),
-                          style: const TextStyle(
-                            color: secondaryColor,
-                          ),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 2),
-                      ),
+                      // Container(
+                      //   child: Text(
+                      //     widget.snap['timestamp'].toString(),
+                      //     style: const TextStyle(
+                      //       color: secondaryColor,
+                      //     ),
+                      //   ),
+                      //   padding: const EdgeInsets.symmetric(vertical: 2),
+                      // ),
                     ],
                   ),
                 ),
@@ -327,6 +386,7 @@ class _PostCardState extends State<PostCard> {
                       widget.snap['postId'].toString(),
                       id,
                       widget.snap['likes'],
+                      widget.schoolName,
                     );
                     setState(() {
                       isLikeAnimating = true;
@@ -383,6 +443,23 @@ class _PostCardState extends State<PostCard> {
                     ],
                   ),
                 ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    children: <Widget>[
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          widget.snap['timestamp'].toString(),
+                          style: const TextStyle(
+                            color: secondaryColor,
+                          ),
+                        ),
+                        // padding: const EdgeInsets.symmetric(vertical: 2),
+                      ),
+                    ]
+                  ),
+                ),
                 // LIKE, COMMENT SECTION OF THE POST
                 SizedBox(
                   width: width, // set this
@@ -423,34 +500,39 @@ class _PostCardState extends State<PostCard> {
                                   widget.snap['postId'].toString(),
                                   id,
                                   widget.snap['likes'],
+                                  widget.schoolName,
                                 ),
                               ),
                             ),
                             Column(
                                 children: [
-                                  Padding(
-                                    padding: EdgeInsets.fromLTRB(0, 0, 8, 2),
-                                    child:
-                                    BookMarkAnimation(
-                                      isAnimating: widget.snap['bookMarked'].contains(id),
-                                      smallLike: true,
-                                      child: IconButton(
-                                        icon: widget.snap['bookMarked'].contains(id)
-                                            ? const Icon(
-                                          Icons.bookmark,
-                                          color: Colors.black,
-                                        )
-                                            : const Icon(
-                                          Icons.bookmark_border,
+                                  Visibility(
+                                      visible: !widget.isAdmin,
+                                      child: Padding(
+                                        padding: EdgeInsets.fromLTRB(0, 0, 8, 2),
+                                        child:
+                                        BookMarkAnimation(
+                                          isAnimating: widget.snap['bookMarked'].contains(id),
+                                          smallLike: true,
+                                          child: IconButton(
+                                            icon: widget.snap['bookMarked'].contains(id)
+                                                ? const Icon(
+                                              Icons.bookmark,
+                                              color: Colors.black,
+                                            )
+                                                : const Icon(
+                                              Icons.bookmark_border,
+                                            ),
+                                            onPressed: () => FireStoreMethods().bookMarkPost(
+                                              widget.snap['postId'].toString(),
+                                              id,
+                                              widget.snap['bookMarked'],
+                                              widget.schoolName,
+                                            ),
+                                          ),
                                         ),
-                                        onPressed: () => FireStoreMethods().bookMarkPost(
-                                          widget.snap['postId'].toString(),
-                                          id,
-                                          widget.snap['bookMarked'],
-                                        ),
+                                        // ],
                                       ),
-                                    ),
-                                    // ],
                                   ),
                                 ]
                             ),

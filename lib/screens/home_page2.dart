@@ -22,19 +22,39 @@ import 'package:google_firebase_signin/screens/login_page.dart';
 import 'package:google_firebase_signin/screens/profile_page.dart';
 import 'package:google_firebase_signin/utilities/debouncer.dart';
 import 'package:google_firebase_signin/utilities/keyboard_utils.dart';
+import 'dart:developer';
+import 'package:the_apple_sign_in/the_apple_sign_in.dart';
 
 import 'chips.dart';
 
 class HomePage2 extends StatefulWidget {
-  const HomePage2({Key? key}) : super(key: key);
+
+  final String schoolName;
+  // final bool isAdmin;
+  const HomePage2({
+    Key? key,
+    required this.schoolName,
+  }) : super(key: key);
+
+
+  // const HomePage2({Key? key}) : super(key: key);
 
   @override
   State<HomePage2> createState() => _HomePage2State();
 }
 
+/**
+ * homepage displaying all messaging between user and their tutors
+ * also allowing users to click on their profile, tutors page, and log out
+ */
+
 class _HomePage2State extends State<HomePage2> {
   final GoogleSignIn googleSignIn = GoogleSignIn();
   final ScrollController scrollController = ScrollController();
+  late DocumentReference _SchooldocRef;
+  //
+  // DocumentReference _SchooldocRef =
+  // FirebaseFirestore.instance.collection('schools').doc(widget.schoolName);
 
   int x = 17;
 
@@ -44,6 +64,7 @@ class _HomePage2State extends State<HomePage2> {
   String _textSearch = "";
   bool isLoading = false;
   bool checkLoading = false;
+  late int numOfCurrentTutors = 0;
 
   late AuthProvider authProvider;
   late String currentUserId;
@@ -54,10 +75,31 @@ class _HomePage2State extends State<HomePage2> {
   StreamController<bool> buttonClearController = StreamController<bool>();
   TextEditingController searchTextEditingController = TextEditingController();
 
-  Future<void> googleSignOut() async {
-    authProvider.googleSignOut();
+  /**
+   * refreshes all state of page when swiped down
+   */
+
+  Future<void> _pullRefresh() async {
+    setState(() {
+      forAsync();
+    });
+    // why use freshNumbers var? https://stackoverflow.com/a/52992836/2301224
+  }
+
+  /**
+   * logging out
+   */
+
+  Future<void> googleSignOut(String userId) async {
+
+    // Future<void> googleSignOut(String userId) async {
+    await authProvider.googleSignOut();
+    await FirebaseAuth.instance.signOut();
+    // await googleSignIn.disconnect();
+    // await googleSignIn.signOut();
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => const LoginPage()));
+
   }
 
   Future<bool> onBackPress() {
@@ -71,6 +113,9 @@ class _HomePage2State extends State<HomePage2> {
     return Future.value(false);
   }
 
+  /**
+   * logging out
+   */
   Future<void> openDialog() async {
     switch (await showDialog(
         context: context,
@@ -152,17 +197,27 @@ class _HomePage2State extends State<HomePage2> {
     }
   }
 
+
+  FutureOr onGoBack(dynamic value) {
+    setState(() {});
+  }
+
   @override
   void dispose() {
     super.dispose();
     buttonClearController.close();
   }
 
+  /**
+   * initializing all varaibles
+   */
   @override
   void initState() {
     super.initState();
+    setState(() {});
     authProvider = context.read<AuthProvider>();
     homeProvider = context.read<HomeProvider>();
+    _SchooldocRef =  FirebaseFirestore.instance.collection('schools').doc(widget.schoolName);
     if (authProvider.getFirebaseUserId()?.isNotEmpty == true) {
       currentUserId = authProvider.getFirebaseUserId()!;
     } else {
@@ -177,31 +232,36 @@ class _HomePage2State extends State<HomePage2> {
 
   void forAsync() async {
     CollectionReference _collectionRef =
-    FirebaseFirestore.instance.collection('users').doc(currentUserId).collection('userMessaged');
+    _SchooldocRef.collection('users').doc(currentUserId).collection('userMessaged');
     QuerySnapshot querySnapshot = await _collectionRef.get();
-    countNumMessaged = querySnapshot.size - 1;
+    numOfCurrentTutors = querySnapshot.size - 1;
   }
 
   @override
   Widget build(BuildContext context) {
+    double widtth = MediaQuery.of(context).size.width;
+    int widd = widtth.toInt();
+
+    print(widtth);
+    print("THIS IS THE WIEDTTHTHT");
     final width = MediaQuery.of(context).size.width;
-    const webScreenSize = 600;
+    int webScreenSize = widd + 1;
     return Scaffold(
       appBar: AppBar(
           automaticallyImplyLeading: false,
           elevation: 0,
           centerTitle: true,
           leading: IconButton(
-              onPressed: () => googleSignOut(),
+              onPressed: () => googleSignOut(currentUserId),
               icon: const Icon(Icons.logout)), // you can put Icon as well, it accepts any widget.
-          title: const Text('TutorTeach'),
+          title: const Text('EdiFly'),
           actions: [
             IconButton(
                 onPressed: () {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const GoToTutorsPage()));
+                          builder: (context) => GoToTutorsPage(schoolName: widget.schoolName)));
                 },
                 icon: const Icon(Icons.supervisor_account_rounded)),
             IconButton(
@@ -209,35 +269,48 @@ class _HomePage2State extends State<HomePage2> {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const ProfilePage()));
+                          builder: (context) => ProfilePage(schoolName: widget.schoolName)));
                 },
                 icon: const Icon(Icons.person)),
           ]),
-      body: WillPopScope(
-        onWillPop: onBackPress,
+      body: RefreshIndicator(
+        onRefresh: _pullRefresh,
         child: Stack(
           children: [
+            Align(
+              alignment: Alignment.center, // Align however you like (i.e .centerRight, centerLeft)
+              child: Visibility(
+                visible: (numOfCurrentTutors == 0),
+                child: Text("No current tutors...",           textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 18),),
+              ),
+            ),
             Column(
               children: [
-                buildSearchBar(),
-                // FutureBuilder<QuerySnapshot<Map<String, dynamic>>> (
-                //   builder: (_, snapshot) {
-                //     if (snapshot.hasData) {
-                //       return ListView.builder(
-                //         physics: const NeverScrollableScrollPhysics(),
-                //         itemBuilder: (_, index) {
-                //           return ListTile(
-                //           );
-                //         },
-                //       );
-                //     } else {
-                //       return const Center(
-                //         child: CircularProgressIndicator(),
-                //       )
-                //     }
-                //   },
-                //   future: getDataViaFuture(),
-                // )
+                Container(
+                  margin: const EdgeInsets.fromLTRB(10, 10, 10, 5),
+                  // margin: const EdgeInsets.all(5),
+                  height: 47,
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(Sizes.dimen_30),
+                      border: Border.all(color: AppColors.spaceLight)
+                    // color: AppColors.spaceLight,
+                  ),
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        height: 10,
+                      ),
+                      Text(
+                        widget.schoolName,
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+                // buildSearchBar()
                 Expanded(
                   child: FutureBuilder(
                     future: getDataViaFuture(),
@@ -260,14 +333,15 @@ class _HomePage2State extends State<HomePage2> {
                                 child: UserCard(
                                   snap: snapshot.data!.docs[index].data(),
                                   isAdmin: false,
+                                  schoolName: widget.schoolName,
                                 ),
                               ),
                         );
                       } else {
                         String display = "";
                         Future.delayed(const Duration(milliseconds: 200), () {
-                            display = "No current tutors...";
-                            setState(() {});
+                          display = "No current tutors...";
+                          setState(() {});
                         });
                         return Center(
                           child: Text(display),
@@ -276,39 +350,7 @@ class _HomePage2State extends State<HomePage2> {
                     },
                   ),
                 ),
-                // Expanded(
-                // child: StreamBuilder<QuerySnapshot>(
-                //   stream: homeProvider.getFirestoreData(
-                //       FirestoreConstants.pathUserCollection,
-                //       _limit,
-                //       _textSearch),
-                //   builder: (BuildContext context,
-                //       AsyncSnapshot<QuerySnapshot> snapshot) {
-                //     if (snapshot.hasData) {
-                //       if ((snapshot.data?.docs.length ?? 0) > 0) {
-                //         return ListView.separated(
-                //           shrinkWrap: true,
-                //           itemCount: snapshot.data!.docs.length,
-                //           itemBuilder: (context, index) => buildItem(
-                //               context, snapshot.data?.docs[index]),
-                //           controller: scrollController,
-                //           separatorBuilder:
-                //               (BuildContext context, int index) =>
-                //             const Divider(),
-                //         );
-                //       } else {
-                //         return const Center(
-                //           child: Text('No current tutors...'),
-                //         );
-                //       }
-                //     } else {
-                //       return const Center(
-                //         child: CircularProgressIndicator(),
-                //       );
-                //     }
-                //   },
-                // ),
-                // ),
+
               ],
             ),
             Positioned(
@@ -322,179 +364,7 @@ class _HomePage2State extends State<HomePage2> {
   }
 
   Future<QuerySnapshot<Map<String, dynamic>>> getDataViaFuture() {
-    return FirebaseFirestore.instance.collection("users").doc(currentUserId).collection('userMessaged').orderBy("timestamp").get();
+    return _SchooldocRef.collection("users").doc(currentUserId).collection('userMessaged').orderBy("timestamp").get();
   }
 
-  Widget buildSearchBar() {
-    return Container(
-      margin: const EdgeInsets.all(Sizes.dimen_10),
-      height: Sizes.dimen_50,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(Sizes.dimen_30),
-        color: AppColors.spaceLight,
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const SizedBox(
-            width: Sizes.dimen_10,
-          ),
-          const Icon(
-            Icons.person_search,
-            color: AppColors.white,
-            size: Sizes.dimen_24,
-          ),
-          const SizedBox(
-            width: 5,
-          ),
-          Expanded(
-            child: TextFormField(
-              textInputAction: TextInputAction.search,
-              controller: searchTextEditingController,
-              onChanged: (value) {
-                if (value.isNotEmpty) {
-                  buttonClearController.add(true);
-                  setState(() {
-                    _textSearch = value;
-                  });
-                } else {
-                  buttonClearController.add(false);
-                  setState(() {
-                    _textSearch = "";
-                  });
-                }
-              },
-              decoration: const InputDecoration.collapsed(
-                hintText: 'Search here...',
-                hintStyle: TextStyle(color: AppColors.white),
-              ),
-            ),
-          ),
-          StreamBuilder(
-              stream: buttonClearController.stream,
-              builder: (context, snapshot) {
-                return snapshot.data == true
-                    ? GestureDetector(
-                  onTap: () {
-                    searchTextEditingController.clear();
-                    buttonClearController.add(false);
-                    setState(() {
-                      _textSearch = '';
-                    });
-                  },
-                  child: const Icon(
-                    Icons.clear_rounded,
-                    color: AppColors.greyColor,
-                    size: 20,
-                  ),
-                )
-                    : const SizedBox.shrink();
-              })
-        ],
-      ),
-    );
-  }
-
-  Future<void> getDataForSubject(String id) async {
-    String firstId = "";
-    final QuerySnapshot querySnapshot =
-    await FirebaseFirestore.instance.collection('messages').doc(id).collection(id).get();
-    for (int i = 0; i < 1; i++) {
-      firstId = querySnapshot.docs[i].id.toString();
-    }
-
-    late LinkedHashMap<String, dynamic> holdsData;
-
-    DocumentReference documentReference = FirebaseFirestore.instance.collection('messages').doc(id).collection(id).doc(firstId);
-    List values = [];
-    await documentReference.get().then((snapshot) {
-      holdsData = snapshot.data() as LinkedHashMap<String, dynamic>;
-      holdContent = holdsData["content"];
-      print(holdContent);
-      print("holdContent-FIRST");
-    });
-    checkLoading = true;
-  }
-
-  void runFunction(String id) async {
-    await getDataForSubject(id);
-  }
-
-  Widget buildItem(BuildContext context, DocumentSnapshot? documentSnapshot) {
-    final firebaseAuth = FirebaseAuth.instance;
-    if (documentSnapshot != null) {
-      ChatUser userChat = ChatUser.fromDocument(documentSnapshot);
-      if (userChat.id == currentUserId) {
-        return const SizedBox(width: 0, height: 0,);
-      } else {
-          return TextButton(
-            onPressed: () {
-              if (KeyboardUtils.isKeyboardShowing()) {
-                KeyboardUtils.closeKeyboard(context);
-              }
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          ChatPage(
-                            peerId: userChat.id,
-                            peerAvatar: userChat.photoUrl,
-                            peerNickname: userChat.displayName,
-                            userAvatar: firebaseAuth.currentUser!.photoURL!,
-                          )));
-            },
-            child: ListTile(
-              leading: userChat.photoUrl.isNotEmpty
-                  ? ClipRRect(
-                borderRadius: BorderRadius.circular(Sizes.dimen_30),
-                child: Image.network(
-                  userChat.photoUrl,
-                  fit: BoxFit.cover,
-                  width: 50,
-                  height: 50,
-                  loadingBuilder: (BuildContext ctx, Widget child,
-                      ImageChunkEvent? loadingProgress) {
-                    if (loadingProgress == null) {
-                      return child;
-                    } else {
-                      return SizedBox(
-                        width: 50,
-                        height: 50,
-                        child: CircularProgressIndicator(
-                            color: Colors.grey,
-                            value: loadingProgress.expectedTotalBytes !=
-                                null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
-                                : null),
-                      );
-                    }
-                  },
-                  errorBuilder: (context, object, stackTrace) {
-                    return const Icon(Icons.account_circle, size: 50);
-                  },
-                ),
-              )
-                  : const Icon(
-                Icons.account_circle,
-                size: 50,
-              ),
-              title: Text(
-                userChat.displayName,
-                style: const TextStyle(color: Colors.black),
-              ),
-            ),
-          );
-      }
-    } else {
-      return const SizedBox.shrink();
-    }
-  }
 }
-
-// get admin working
-// fix subjects
-// get posts working
-// fix search bar
-// fix display in home page
-// fix UI

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_firebase_signin/allConstants/all_constants.dart';
 
+
 class BadMessages {
   String idFrom;
   String idTo;
@@ -11,6 +12,10 @@ class BadMessages {
   int timestamp;
   String content;
   int type;
+
+  /**
+   * Creates blueprint to bad messages, instating neccessary varaibles
+   */
 
   BadMessages(
       {required this.idFrom,

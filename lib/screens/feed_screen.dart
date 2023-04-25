@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:google_firebase_signin/allConstants/all_constants.dart';
 import 'package:google_firebase_signin/allConstants/app_constants.dart';
 import 'package:google_firebase_signin/allConstants/color_constants.dart';
 import 'package:google_firebase_signin/allWidgets/saved_post_card.dart';
@@ -11,13 +12,38 @@ import 'package:google_firebase_signin/utilities/colors.dart';
 import 'package:google_firebase_signin/allWidgets/post_card.dart';
 
 class FeedScreen extends StatefulWidget {
-  const FeedScreen({Key? key}) : super(key: key);
+
+  final String schoolName;
+  // final bool isAdmin;
+  const FeedScreen({
+    Key? key,
+    required this.schoolName,
+  }) : super(key: key);
+
+  // const FeedScreen({Key? key}) : super(key: key);
 
   @override
   State<FeedScreen> createState() => _FeedScreenState();
 }
 
 class _FeedScreenState extends State<FeedScreen> {
+  late DocumentReference _SchooldocRef;
+
+  @override
+  void initState() {
+    super.initState();
+    _SchooldocRef =
+        FirebaseFirestore.instance.collection('schools').doc(widget.schoolName);
+  }
+
+  Future<bool> onBackPress() {
+
+    return Future.value(false);
+  }
+  /**
+   * builds feed for service hour opportunity posts
+   */
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
@@ -27,145 +53,178 @@ class _FeedScreenState extends State<FeedScreen> {
       backgroundColor: Colors.white24,
       appBar: width > webScreenSize
           ? null
-          : AppBar(
-        automaticallyImplyLeading: false,
-        elevation: 0,
-        backgroundColor: AppColors.spaceCadet,
-        centerTitle: false,
-        title: const Text(
-          'Service Opportunities',
-          style: TextStyle(color: Colors.white),
+          :
+      AppBar(
+          automaticallyImplyLeading: false,
+          elevation: 0,
+          centerTitle: true,
+          // leading: IconButton(
+          //     onPressed: () => googleSignOut(currentUserId),
+          //     icon: const Icon(Icons.logout)), // you can put Icon as well, it accepts any widget.
+          title: const Text('Service Opportunities'),
+          actions: [
+
+            IconButton(
+              icon: const Icon(
+                Icons.bookmark_border,
+                color: primaryColor,
+
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SavedPosts(schoolName: widget.schoolName)),
+                );
+              },
+
+            ),
+            IconButton(
+              icon: const Icon(
+                Icons.add_circle_outline,
+                color: primaryColor,
+
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => FixedUpPost(schoolName: widget.schoolName)),
+                );
+              },
+
+            ),
+          ]),
+      //     : AppBar(
+      //   automaticallyImplyLeading: false,
+      //   elevation: 0,
+      //   backgroundColor: AppColors.spaceCadet,
+      //   centerTitle: false,
+      //   title: const Text(
+      //     'Service Opportunities',
+      //     style: TextStyle(color: Colors.white),
+      //   ),
+      //
+      //   actions: [
+      //
+      //     IconButton(
+      //       icon: const Icon(
+      //         Icons.bookmark_border,
+      //         color: primaryColor,
+      //
+      //       ),
+      //       onPressed: () {
+      //         Navigator.push(
+      //           context,
+      //           MaterialPageRoute(builder: (context) => SavedPosts(schoolName: widget.schoolName)),
+      //         );
+      //       },
+      //
+      //     ),
+      //     IconButton(
+      //       icon: const Icon(
+      //         Icons.add_circle_outline,
+      //         color: primaryColor,
+      //
+      //       ),
+      //       onPressed: () {
+      //         Navigator.push(
+      //           context,
+      //           MaterialPageRoute(builder: (context) => FixedUpPost(schoolName: widget.schoolName)),
+      //         );
+      //       },
+      //
+      //     ),
+      //   ],
+      // ),
+      body:
+      WillPopScope(
+        onWillPop: onBackPress,
+        child: Stack(
+          children: [
+            Container(
+              color: AppColors.white,
+              child:
+              Column(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.fromLTRB(10, 10, 10, 5),
+                    // margin: const EdgeInsets.all(5),
+                    height: 47,
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(Sizes.dimen_30),
+                        border: Border.all(color: AppColors.spaceLight)
+                      // color: AppColors.spaceLight,
+                    ),
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          width: double.infinity,
+                          height: 10,
+                        ),
+                        Text(
+                          widget.schoolName,
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // buildSearchBar(),
+                  Expanded(
+                    child:
+                    StreamBuilder(
+                      stream: _SchooldocRef.collection('posts').orderBy('postId').snapshots(),
+                      // stream: FirebaseFirestore.instance.collection('posts').snapshots(),
+                      builder: (context,
+                          AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
+                        if (snapshot.hasData) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          }
+                          return
+
+                            ListView.builder(
+                              itemCount: snapshot.data!.docs.length,
+                              itemBuilder: (ctx, index) =>
+                                  Container(
+                                    margin: EdgeInsets.symmetric(
+                                      horizontal: width > webScreenSize ? width * 0.3 : 0,
+                                      vertical: width > webScreenSize ? 15 : 0,
+                                    ),
+                                    child:
+
+                                    PostCard(
+                                      snap: snapshot.data!.docs[index].data(),
+                                      isAdmin: false,
+                                      schoolName: widget.schoolName,
+                                    ),
+                                  ),
+                            );
+                        } else {
+                          return const Center(
+                            child: Text('No current service posts...'),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Positioned(
+            //   child:
+            //   isLoading ? const LoadingView() : const SizedBox.shrink(),
+            // ),
+          ],
         ),
-
-        actions: [
-
-          IconButton(
-            icon: const Icon(
-              Icons.bookmark_border,
-              color: primaryColor,
-
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SavedPosts()),
-              );
-            },
-
-          ),
-          IconButton(
-            icon: const Icon(
-              Icons.add_circle_outline,
-              color: primaryColor,
-
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const FixedUpPost()),
-              );
-            },
-
-          ),
-        ],
       ),
-    //   body: FutureBuilder<QuerySnapshot<Map<String, dynamic>>> (
-    //     builder: (_, snapshot) {
-    // if (snapshot.hasData) {
-    //       if (snapshot.connectionState == ConnectionState.waiting) {
-    //         return const Center(
-    //           child: CircularProgressIndicator(),
-    //         );
-    //       }
-    //       return ListView.builder(
-    //         itemCount: snapshot.data!.docs.length,
-    //         itemBuilder: (_, index) =>
-    //             Container(
-    //               margin: EdgeInsets.symmetric(
-    //                 horizontal: width > webScreenSize ? width * 0.3 : 0,
-    //                 vertical: width > webScreenSize ? 15 : 0,
-    //               ),
-    //               child: PostCard(
-    //                 snap: snapshot.data!.docs[index].data(),
-    //                 isAdmin: false,
-    //               ),
-    //             ),
-    //       );
-    //     } else {
-    //       return const Center(
-    //         child: Text('No current service posts...'),
-    //       );
-    //     }
-    //     },
-    //     future: getDataViaFuture(),
-    //   )
-    //   body: FutureBuilder(
-    //     future: getDataViaFuture(),
-    //     builder: (context,
-    //         AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
-    //       if (snapshot.hasData) {
-    //         if (snapshot.connectionState == ConnectionState.waiting) {
-    //           return const Center(
-    //             child: CircularProgressIndicator(),
-    //           );
-    //         }
-    //         return ListView.builder(
-    //           itemCount: snapshot.data!.docs.length,
-    //           itemBuilder: (ctx, index) =>
-    //               Container(
-    //                 margin: EdgeInsets.symmetric(
-    //                   horizontal: width > webScreenSize ? width * 0.3 : 0,
-    //                   vertical: width > webScreenSize ? 15 : 0,
-    //                 ),
-    //                 child: PostCard(
-    //                   snap: snapshot.data!.docs[index].data(),
-    //                   isAdmin: false,
-    //                 ),
-    //               ),
-    //         );
-    //       } else {
-    //         return const Center(
-    //           child: Text('No current service posts...'),
-    //         );
-    //       }
-    //     },
-    //   ),
-      body: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection('posts').orderBy('postId').snapshots(),
-        // stream: FirebaseFirestore.instance.collection('posts').snapshots(),
-        builder: (context,
-            AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
-        if (snapshot.hasData) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-          return ListView.builder(
-            itemCount: snapshot.data!.docs.length,
-            itemBuilder: (ctx, index) =>
-                Container(
-                  margin: EdgeInsets.symmetric(
-                    horizontal: width > webScreenSize ? width * 0.3 : 0,
-                    vertical: width > webScreenSize ? 15 : 0,
-                  ),
-                  child: PostCard(
-                    snap: snapshot.data!.docs[index].data(),
-                    isAdmin: false,
-                  ),
-                ),
-          );
-        } else {
-          return const Center(
-            child: Text('No current service posts...'),
-          );
-        }
-        },
-      ),
+
+
     );
   }
 
   Future<QuerySnapshot<Map<String, dynamic>>> getDataViaFuture() {
-    return FirebaseFirestore.instance.collection("posts").orderBy("postId").get();
+    return _SchooldocRef.collection("posts").orderBy("postId").get();
   }
 }

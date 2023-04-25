@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_firebase_signin/auth_service.dart';
+import 'package:google_firebase_signin/models/pair.dart';
 import 'package:google_firebase_signin/screens/bottomBarScreen.dart';
 import 'package:google_firebase_signin/screens/bottomBarScreen_admin.dart';
 import 'package:google_firebase_signin/screens/contact_page.dart';
@@ -7,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:google_firebase_signin/allConstants/all_constants.dart';
 import 'package:google_firebase_signin/providers/auth_provider.dart';
 import 'package:google_firebase_signin/screens/home_page.dart';
+import 'package:the_apple_sign_in/apple_sign_in_button.dart' as AppleButton;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -15,10 +19,12 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
+
 class _LoginPageState extends State<LoginPage> {
   final GlobalKey<FormState> _signUpKey = GlobalKey<FormState>();
-  String isTutor = "";
+  String isTutor = "", schoolName = "";
   TextEditingController? isTutorController;
+  TextEditingController? schoolController;
 
   final TextEditingController _email = TextEditingController();
   final TextEditingController _pwd = TextEditingController();
@@ -31,6 +37,22 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
+  }
+
+  /**
+   * checking if code entered by user matches schools code
+   * @params context
+   */
+
+  Future<void> _signInWithApple(BuildContext context) async {
+    try {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final user = await authService.signInWithApple();
+      print('uid: ${user.uid}');
+    } catch (e) {
+      // TODO: Show alert here
+      print(e);
+    }
   }
 
   showAlertDialog(BuildContext context) {
@@ -60,6 +82,12 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  /**
+   * setting state of sign up for any user
+   * @params context
+   */
+
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
@@ -72,16 +100,14 @@ class _LoginPageState extends State<LoginPage> {
         Fluttertoast.showToast(msg: 'Sign in cancelled');
         break;
       case Status.authenticated:
-        Fluttertoast.showToast(msg: 'Sign in successful');
+        // Fluttertoast.showToast(msg: 'Sign in successful');
         break;
       default:
         break;
     }
 
     return Scaffold(
-      resizeToAvoidBottomInset: true,
       body:
-
       Stack(
         children: [
           ListView(
@@ -91,16 +117,16 @@ class _LoginPageState extends State<LoginPage> {
               horizontal: Sizes.dimen_20,
             ),
             children: [
-              vertical50,
+              SizedBox(height: 40.0),
               const Text(
-                'Welcome to TutorTeach',
+                'Welcome to EdiFly',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: Sizes.dimen_26,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              vertical30,
+              vertical20,
               const Text(
                 'Login to continue',
                 textAlign: TextAlign.center,
@@ -109,9 +135,25 @@ class _LoginPageState extends State<LoginPage> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              vertical50,
+              vertical30,
               Center(child: Image.asset('assets/images/back.png')),
-              vertical50,
+              vertical10,
+              const Text('Enter school name:', style: TextStyle(
+                fontStyle: FontStyle.italic,
+                fontWeight: FontWeight.bold,
+                color: AppColors.spaceCadet,
+              ),),
+              TextField(
+                decoration: kTextInputDecoration.copyWith(
+                    hintText: 'School Name'),
+                controller: schoolController,
+                // decoration: kTextInputDecoration.copyWith(
+                //     hintText: 'Write about yourself...'),
+                onChanged: (value) {
+                  schoolName = value;
+                },
+              ),
+              vertical10,
               const Text('Enter school code:', style: TextStyle(
                 fontStyle: FontStyle.italic,
                 fontWeight: FontWeight.bold,
@@ -119,7 +161,7 @@ class _LoginPageState extends State<LoginPage> {
               ),),
               TextField(
                 decoration: kTextInputDecoration.copyWith(
-                    hintText: '######'),
+                    hintText: '#######'),
                 controller: isTutorController,
                 // decoration: kTextInputDecoration.copyWith(
                 //     hintText: 'Write about yourself...'),
@@ -129,159 +171,147 @@ class _LoginPageState extends State<LoginPage> {
               ),
               GestureDetector(
                 onTap: () async {
-                  if (isTutor != "AAAAAA") {
+                  bool checkIfGood = false;
+                  String hasToHave = "";
+                  QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore.instance.collection('schools').get();
+                  for (int i = 0; i < snapshot.docs.length; i++) {
+                    Map<String, dynamic> allData = snapshot.docs[i].data();
+                    if (snapshot.docs[i].id == schoolName) {
+                      hasToHave = allData["inEmail"];
+                      if (allData["code"] == isTutor) {
+                        checkIfGood = true;
+                      } else { break; }
+                    }
+                  }
+
+                  if (!checkIfGood) {
                     showAlertDialog(context);
                   } else {
                     // bool accepted = await authProvider.showAlertDialog(context);
                     // if (accepted) {
-                      bool isSuccess = await authProvider.handleGoogleSignIn(context);
-                      bool isAdmin = await authProvider.isAdminEmail();
-                      if (isSuccess && isAdmin) {
-                        Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => bottomBarScreenAdmin()));
-                      } else if (isSuccess) {
-                        Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => bottomBarScreen()));
-                      }
-                      // else {
-                      //   // authProvider.status = Status.authenticateCanceled;
-                      // }
+                    Pair isSuccess = await authProvider.handleGoogleSignIn(schoolName, hasToHave, context);
+
+                    // bool isAdmin = await authProvider.isAdminEmail();
+                    if (isSuccess.item1 == true && isSuccess.item2 == true) {
+                      Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => bottomBarScreenAdmin(schoolName: schoolName,)));
+                    } else if (isSuccess.item1 == true) {
+                      Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => bottomBarScreen(schoolName: schoolName,)));
+                    }
+                    // else {
+                    //   // authProvider.status = Status.authenticateCanceled;
+                    // }
                     // }
                   }
                 },
                 child: Image.asset('assets/images/google_login.jpg'),
+              ),
+              Column(
+                children: [
+                  // AppleButton.AppleSignInButton(
+                  //   style: AppleButton.ButtonSty
+                  //
+                  //   le.black,
+                  //   type: AppleButton.ButtonType.signIn,
+                  //   onPressed: () async {
+                  //     try {
+                  //
+                  //       bool checkIfGood = false;
+                  //       String hasToHave = "";
+                  //       QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore.instance.collection('schools').get();
+                  //       for (int i = 0; i < snapshot.docs.length; i++) {
+                  //         Map<String, dynamic> allData = snapshot.docs[i].data();
+                  //         if (snapshot.docs[i].id == schoolName) {
+                  //           hasToHave = allData["inEmail"];
+                  //           if (allData["code"] == isTutor) {
+                  //             checkIfGood = true;
+                  //           } else { break; }
+                  //         }
+                  //       }
+                  //       if (!checkIfGood) {
+                  //         showAlertDialog(context);
+                  //       } else {
+                  //         final user = await authProvider.signInWithApple();
+                  //
+                  //         Navigator.pushReplacement(
+                  //             context,
+                  //             MaterialPageRoute(
+                  //                 builder: (context) => bottomBarScreen(schoolName: schoolName,)));
+                  //
+                  //         print('uid: ${user.uid}');
+                  //       }
+                  //     } catch (e) {
+                  //       // TODO: Show alert here
+                  //       print(e);
+                  //     }
+                  //   }
+                  //   // onPressed: appleLogIn,
+                  // )
+                  // if (appleSignInAvailable.isAvailable)
+                  //   AppleSignInButton(
+                  //     // style: ButtonStyle.black,
+                  //     type: ButtonType.signIn,
+                  //     onPressed: () => _signInWithApple(context),
+                  //   ),
+                ],
               ),
             ],
           ),
           Center(
             child: authProvider.status == Status.authenticating
                 ? const CircularProgressIndicator(
-                    color: AppColors.lightGrey,
-                  )
+              color: AppColors.lightGrey,
+            )
                 : const SizedBox.shrink(),
           ),
-          GestureDetector(
-            onTap: (){
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const ContactPage()));
-            },
-            child: Container(
-              padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
-              // color: Colors.green,
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Text("Don't have a school code. Contact Us!",
-                    style: TextStyle(
-                      color: Colors.blue,
-                      fontSize: 15,
-                      decoration: TextDecoration.underline,
-                      decorationStyle: TextDecorationStyle.wavy,
-                      decorationColor: Colors.blue,
-
-                    ),),
-                ),
-              ),
-            )
-        ),
-          // InkWell(
-          //   child: Padding(
-          //     padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
-          //     child: Align(
-          //       alignment: Alignment.bottomCenter,
-          //       child: Text("Don't have a school code. Contact Us!",
-          //         style: TextStyle(
-          //           color: Colors.blue,
-          //           fontSize: 15,
-          //           decoration: TextDecoration.underline,
-          //           decorationStyle: TextDecorationStyle.wavy,
-          //           decorationColor: Colors.blue,
-          //
-          //         ),),
-          //     ),
-          //   ),
-          //   onTap: () {
-          //     Navigator.push(
-          //         context,
-          //         MaterialPageRoute(
-          //             builder: (context) => const ContactPage()));
-          //   },
-          // )
         ],
       ),
+      persistentFooterButtons: [
+
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center, //Center Row contents horizontally,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          // mainAxisSize: MainAxisSize.max,
+          // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            GestureDetector(
+                onTap: (){
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const ContactPage()));
+                },
+                child: Container(
+                  padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
+                  // color: Colors.green,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: Text("Don't have a school code. Contact Us!",
+                        style: TextStyle(
+                          color: Colors.blue,
+                          fontSize: 15,
+                          decoration: TextDecoration.underline,
+                          decorationStyle: TextDecorationStyle.solid,
+                          decorationColor: Colors.blue,
+
+                        ),),
+                    ),
+                  ),
+                )
+            ),
+          ],
+        ),
+
+
+      ],
     );
   }
 
-  //
-  // Widget signUpAuthButton(BuildContext context, String buttonName) {
-  //   return Padding(
-  //     padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-  //     child: ElevatedButton(
-  //       style: ElevatedButton.styleFrom(
-  //           minimumSize: Size(MediaQuery.of(context).size.width - 60, 30.0),
-  //           elevation: 5.0,
-  //           primary: Color.fromRGBO(57, 60, 80, 1),
-  //           padding: EdgeInsets.only(
-  //             left: 20.0,
-  //             right: 20.0,
-  //             top: 7.0,
-  //             bottom: 7.0,
-  //           ),
-  //           shape: RoundedRectangleBorder(
-  //             borderRadius: BorderRadius.all(Radius.circular(20.0)),
-  //           )),
-  //       child: Text(
-  //         buttonName,
-  //         style: TextStyle(
-  //           fontSize: 25.0,
-  //           letterSpacing: 1.0,
-  //           fontWeight: FontWeight.w400,
-  //         ),
-  //       ),
-  //       onPressed: () async {
-  //         if (this._signUpKey.currentState!.validate()) {
-  //           print('Validated');
-  //
-  //           if (mounted) {
-  //             setState(() {
-  //               this._isLoading = true;
-  //             });
-  //           }
-  //
-  //           SystemChannels.textInput.invokeMethod('TextInput.hide');
-  //
-  //           final EmailSignUpResults response = await this
-  //               ._emailAndPasswordAuth
-  //               .signUpAuth(email: this._email.text, pwd: this._pwd.text);
-  //           if (response == EmailSignUpResults.SignUpCompleted) {
-  //             Navigator.push(
-  //                 context, MaterialPageRoute(builder: (_) => TakePrimaryUserData()));
-  //           } else {
-  //             final String msg =
-  //             response == EmailSignUpResults.EmailAlreadyPresent
-  //                 ? 'Email Already Present'
-  //                 : 'Sign Up Not Completed';
-  //             ScaffoldMessenger.of(context)
-  //                 .showSnackBar(SnackBar(content: Text(msg)));
-  //           }
-  //         } else {
-  //           print('Not Validated');
-  //         }
-  //
-  //         if (mounted) {
-  //           setState(() {
-  //             this._isLoading = false;
-  //           });
-  //         }
-  //       },
-  //     ),
-  //   );
-  // }
 }

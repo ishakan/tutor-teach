@@ -19,6 +19,10 @@ class BookMarkAnimation extends StatefulWidget {
   _BookMarkAnimationState createState() => _BookMarkAnimationState();
 }
 
+/**
+    Animation for saving posts
+ */
+
 class _BookMarkAnimationState extends State<BookMarkAnimation>
     with SingleTickerProviderStateMixin {
   late AnimationController controller;

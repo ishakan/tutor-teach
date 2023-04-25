@@ -8,6 +8,10 @@ class ChatMessages {
   String content;
   int type;
 
+  /**
+   * Creates blueprint for regular chat messages, instating neccessary varaibles
+   */
+
   ChatMessages(
       {required this.idFrom,
       required this.idTo,

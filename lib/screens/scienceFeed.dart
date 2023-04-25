@@ -20,24 +20,31 @@ class scienceFeedScreen extends StatefulWidget {
   // const scienceFeedScreen({Key? key}) : super(key: key);
   final List<Color> fieldColors;
   final String type;
+  final String schoolName;
   // final bool isAdmin;
   const scienceFeedScreen({
     Key? key,
     required this.fieldColors,
     required this.type,
+    required this.schoolName,
   }) : super(key: key);
 
   @override
   State<scienceFeedScreen> createState() => _scienceFeedScreenState();
 }
 
+/**
+ * creates lists of all tutors for any course under any subject
+ */
+
+
 class _scienceFeedScreenState extends State<scienceFeedScreen> {
-  var collection = FirebaseFirestore.instance.collection('subjects');
+  // var collection = FirebaseFirestore.instance.collection("schools").doc(widget.schoolName).collection('subjects');
   late final Future<DocumentSnapshot> _calculation;
 
   final GoogleSignIn googleSignIn = GoogleSignIn();
   final ScrollController scrollController = ScrollController();
-  String peerId = "", peerName = "", peerPhotoUrl = "", gradeLevel = "";
+  String peerId = "", peerName = "", peerPhotoUrl = "", gradeLevel = "", fcmToken = "";
   late ProfileProvider profileProvider;
 
   int _limit = 100;
@@ -93,10 +100,15 @@ class _scienceFeedScreenState extends State<scienceFeedScreen> {
     // checkIfAdmin();
   }
 
+  /**
+   * gets all classes
+   */
+
+
   Future<void> getScienceClasses() async {
 
     print("Begin");
-    QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore.instance.collection('subjects').get();
+    QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore.instance.collection("schools").doc(widget.schoolName).collection('subjects').get();
     
     for (int i = 0; i < snapshot.docs.length; i++) {
       Map<String, dynamic> allData = snapshot.docs[i].data();
@@ -109,7 +121,6 @@ class _scienceFeedScreenState extends State<scienceFeedScreen> {
 
   }
 
-
   void asyncFunction() async {
     await getScienceClasses();
     for (int i =0; i < allScienceClasses.length; i++) {
@@ -117,16 +128,50 @@ class _scienceFeedScreenState extends State<scienceFeedScreen> {
       displayCompSci = await buildEntireSubject(allScienceClasses[i], widget.fieldColors[i]);
       displayAllScience.add(displayCompSci);
     }
-    currentStatus = true;
     readLocal();
+    checkIfAdmin();
+    currentStatus = true;
 
     print(currentStatus);
 
   }
 
-  // void checkIfAdmin() async {
-  //
-  // }
+  /**
+   * determines if user is an admine, will change whether user can message tutors or not
+   */
+
+  void checkIfAdmin() async {
+    QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore.instance.collection("schools").doc(widget.schoolName).collection('allowed_email').get();
+    List<dynamic> holder = [];
+    for (int i = 0; i < snapshot.docs.length; i++) {
+      Map<String, dynamic> allData = snapshot.docs[i].data();
+      holder = allData["emails"];
+    }
+    print(holder);
+
+    DocumentReference documentReference = FirebaseFirestore.instance.collection('schools').doc(widget.schoolName).collection('users').doc(currentUserId);
+    await documentReference.get().then((snapshot2) {
+      print(snapshot2.data());
+      Map<String, dynamic> allData = snapshot2.data() as Map<String, dynamic>;
+
+    });
+    //
+    // print("Begin");
+    // DocumentSnapshot<Map<String, dynamic>> snapshot2 = await FirebaseFirestore.instance.collection("schools").doc(widget.schoolName).collection('users').doc(currentUserId).get();
+    //
+    // print(allData);
+    // print(allScienceClasses);
+    print("Science Classes?");
+
+    String email = await authProvider.getFirebaseEmail(widget.schoolName);
+    // String email = profileProvider.getPrefs(FirestoreConstants.email) ?? "";
+    print(email);
+    print("EMAIL?");
+    if (holder.contains(email)) {
+      isAdmin = true;
+    }
+    print(isAdmin);
+  }
 
 
   void readLocal() async {
@@ -150,21 +195,6 @@ class _scienceFeedScreenState extends State<scienceFeedScreen> {
     // print(holdCompSci);
     print("HOLD COMP SCI");
     scrollController.addListener(scrollListener);
-
-    QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore.instance.collection('allowed_email').get();
-    List<dynamic> holder = [];
-    for (int i = 0; i < snapshot.docs.length; i++) {
-      Map<String, dynamic> allData = snapshot.docs[i].data();
-      holder = allData["emails"];
-    }
-    print(holder);
-    String email = profileProvider.getPrefs(FirestoreConstants.email) ?? "";
-    print(email);
-    print("EMAIL?");
-    if (holder.contains(email)) {
-      isAdmin = true;
-    }
-    print(isAdmin);
     print("IS ADMIN??");
 
   }
@@ -182,7 +212,7 @@ class _scienceFeedScreenState extends State<scienceFeedScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              "TutorTeach",
+              "EdiFly",
               style: TextStyle(
                   fontWeight: FontWeight.bold, fontSize: Sizes.dimen_18),
             ),
@@ -239,7 +269,7 @@ class _scienceFeedScreenState extends State<scienceFeedScreen> {
   }
 
   Future<String> getName(String name) async {
-      var collection = FirebaseFirestore.instance.collection('subjects');
+      var collection = FirebaseFirestore.instance.collection("schools").doc(widget.schoolName).collection('subjects');
       var docSnapshot = await collection.doc(name).get();
       if (docSnapshot.exists) {
         Map<String, dynamic>? data = docSnapshot.data();
@@ -249,6 +279,9 @@ class _scienceFeedScreenState extends State<scienceFeedScreen> {
       } return "";
   }
 
+  /**
+   * title displaying course name
+   */
 
   Widget buildTitle(String input, Color subColor) {
     input = input.replaceAll('_', " ");
@@ -274,6 +307,11 @@ class _scienceFeedScreenState extends State<scienceFeedScreen> {
       ),
     );
   }
+
+  /**
+   * shows both title and tutors listed for each course
+   * @params input - course name, subColor - course color
+   */
 
   Future<Widget> buildEntireSubject(String input, Color subColor) async {
     List<Widget> holder = await buildTutorsforSubject(input, subColor);
@@ -308,11 +346,15 @@ class _scienceFeedScreenState extends State<scienceFeedScreen> {
     );
   }
 
+  /**
+   * gathers all tutors for course from Frebase Database
+   */
+
   Future<List<Widget>> buildTutorsforSubject(String input, Color color) async {
     String subjects = "subjects";
     List<Widget> children = [];
     List<dynamic> allID = [];
-    var collection = FirebaseFirestore.instance.collection('subjects');
+    var collection = FirebaseFirestore.instance.collection("schools").doc(widget.schoolName).collection('subjects');
     var docSnapshot = await collection.doc(input).get();
     print("INPUT");
     print(docSnapshot);
@@ -322,20 +364,20 @@ class _scienceFeedScreenState extends State<scienceFeedScreen> {
       print(data);
       print("THIS DATA");
       print(data![input]);
-      allID = data![input] as List<dynamic>;
+      allID = data[input] as List<dynamic>;
       print(allID);
     }
 
     // holdCompTutors.add(buildTitle(input, color));
     // holdCompTutors.add(vertical15);
-    var u_collection = FirebaseFirestore.instance.collection('users');
+    var u_collection = FirebaseFirestore.instance.collection("schools").doc(widget.schoolName).collection('users');
     print(u_collection);
     for (int i =0; i < allID.length; i++) {
         if (allID[i] != "") {
           print(allID[i]);
           print("ALL ID");
           bool isGood = true;
-          DocumentReference documentReference = FirebaseFirestore.instance.collection('users').doc(allID[i]);
+          DocumentReference documentReference = FirebaseFirestore.instance.collection("schools").doc(widget.schoolName).collection('users').doc(allID[i]);
           print(documentReference);
           await documentReference.get().then((snapshot) {
             if (snapshot.data() == null) {
@@ -347,6 +389,7 @@ class _scienceFeedScreenState extends State<scienceFeedScreen> {
               peerName = data["displayName"] ?? "";
               peerPhotoUrl = data["photoUrl"] ?? "";
               gradeLevel = data["aboutMe"] ?? "";
+              fcmToken = data["fcmToken"] ?? "";
             }
           });
 
@@ -354,10 +397,11 @@ class _scienceFeedScreenState extends State<scienceFeedScreen> {
           print(peerName);
           print(peerPhotoUrl);
           print(gradeLevel);
+          print(fcmToken);
           print("ALL THINGS");
           if (isGood && peerId.length > 0) {
             children.add(
-                buildItem(context, peerId, peerName, peerPhotoUrl, gradeLevel));
+                buildItem(context, peerId, peerName, peerPhotoUrl, gradeLevel, fcmToken));
           }
         }
     }
@@ -367,11 +411,11 @@ class _scienceFeedScreenState extends State<scienceFeedScreen> {
     // return children;
   }
 
-  void setCalculation(String input) async {
-    _calculation = collection.doc(input).get();
-  }
+  // void setCalculation(String input) async {
+  //   _calculation = collection.doc(input).get();
+  // }
 
-  Widget buildItem(BuildContext context, String peerId, String peerName, String peerPhotoUrl, String gradeLevel)  {
+  Widget buildItem(BuildContext context, String peerId, String peerName, String peerPhotoUrl, String gradeLevel, String fcmToken)  {
     final firebaseAuth = FirebaseAuth.instance;
     if (peerId != "null") {
       return Container(
@@ -385,7 +429,7 @@ class _scienceFeedScreenState extends State<scienceFeedScreen> {
         // color: Colors.white,
         child: TextButton(
           onPressed: () {
-            if (isAdmin) {
+            if (isAdmin || peerId == currentUserId) {
 
             } else {
               if (KeyboardUtils.isKeyboardShowing()) {
@@ -399,6 +443,7 @@ class _scienceFeedScreenState extends State<scienceFeedScreen> {
                         peerAvatar: peerPhotoUrl,
                         peerNickname: peerName,
                         userAvatar: firebaseAuth.currentUser!.photoURL!,
+                        schoolName: widget.schoolName,
                       )));
             }
           },
@@ -440,15 +485,13 @@ class _scienceFeedScreenState extends State<scienceFeedScreen> {
             ),
             title: Row(
                 children: [
-                  Text(
-                    peerName,
-                    style: const TextStyle(color: Colors.black),
-                  ),
-                  Align(
-                    alignment: Alignment.centerRight,
+                  Expanded(
                     child: Text(
-                      " - ${gradeLevel}",
-                      style: const TextStyle(color: Colors.black),
+                      "$peerName - $gradeLevel",
+                      style: TextStyle( color: Colors.black,),
+                      softWrap: false,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis, // new
                     ),
                   ),
                 ]

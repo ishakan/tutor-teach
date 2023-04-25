@@ -18,9 +18,21 @@ class ProfileProvider {
     return prefs.getString(key);
   }
 
+  /**
+   * sets preferences for values
+   * @param key
+   * @param value
+   */
+
   Future<bool> setPrefs(String key, String value) async {
     return await prefs.setString(key, value);
   }
+
+  /**
+   * uploads image to firebase storage
+   * @param image - image file
+   * @param fileNmae - name of image file
+   */
 
   UploadTask uploadImageFile(File image, String fileName) {
     Reference reference = firebaseStorage.ref().child(fileName);
@@ -28,9 +40,15 @@ class ProfileProvider {
     return uploadTask;
   }
 
+
+  /**
+   * updates firestore data by using collection string and path string
+   */
+
   Future<void> updateFirestoreData(String collectionPath, String path,
-      Map<String, dynamic> dataUpdateNeeded) {
+      Map<String, dynamic> dataUpdateNeeded, String schoolName) {
     return firebaseFirestore
+        .collection('schools').doc(schoolName)
         .collection(collectionPath)
         .doc(path)
         .update(dataUpdateNeeded);

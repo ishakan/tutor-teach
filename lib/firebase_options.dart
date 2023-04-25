@@ -37,6 +37,11 @@ class DefaultFirebaseOptions {
     );
   }
 
+  /**
+   * Unique information for accessing specific Firebase Database
+   * API_KEY, APP_ID, Sender_id, Project_id, authDomain, storageBucket, measurmentId
+   */
+
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyAUZ4Hpt2FTZ4KcHe_46R3EBDwqglbwJGA',
     appId: '1:343659267573:web:87ecb41478462e89698cbc',
@@ -63,6 +68,6 @@ class DefaultFirebaseOptions {
     storageBucket: 'chat-app-6c19b.appspot.com',
     androidClientId: '343659267573-mcc953ohnaoahrdtt76pr5fqrfuf06nm.apps.googleusercontent.com',
     iosClientId: '343659267573-nvd2pnliseno31mispk86c0ucd9t17j3.apps.googleusercontent.com',
-    iosBundleId: 'com.timelessfusionapps.smartTalk',
+    iosBundleId: 'com.example.googleFirebaseSignin',
   );
 }

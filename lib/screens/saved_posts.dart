@@ -15,40 +15,75 @@ import 'package:google_firebase_signin/allWidgets/post_card.dart';
 import 'package:provider/provider.dart';
 
 class SavedPosts extends StatefulWidget {
-  const SavedPosts({Key? key}) : super(key: key);
+  // const SavedPosts({Key? key}) : super(key: key);
+  final String schoolName;
+  // final bool isAdmin;
+  const SavedPosts({
+    Key? key,
+    required this.schoolName,
+  }) : super(key: key);
 
   @override
   State<SavedPosts> createState() => _SavedPostsState();
 }
 
-class _SavedPostsState extends State<SavedPosts> {
+/**
+ * builds page for saved posts for users
+ */
 
+
+class _SavedPostsState extends State<SavedPosts> {
+  late DocumentReference _SchooldocRef;
   String uid = "";
   late ProfileProvider profileProvider;
+  late int numOfSsavedPosts = 0;
+  bool holdStatus = false;
+
 
   @override
   void initState() {
     super.initState();
-    profileProvider = context.read<ProfileProvider>();
-    readLocal();
-    print("THIS SET VALUE VALUE2");
-  }
-
-
-  void readLocal() async {
     setState(() {
+      profileProvider = context.read<ProfileProvider>();
       uid = profileProvider.getPrefs(FirestoreConstants.id) ?? "";
-      // print(bookState);
+      finishFunction();
     });
-    // print(bookState);
-    // print(postId);
-    // print("THIS SET VALUE VALUE2");
   }
+
+  void finishFunction() async {
+    await forAsync();
+    setState(() {
+      print(numOfSsavedPosts);
+    });
+  }
+
+  Future<void> forAsync() async {
+    _SchooldocRef = FirebaseFirestore.instance.collection('schools').doc(widget.schoolName);
+    int counter = 0;
+    QuerySnapshot querySnapshot = await _SchooldocRef.collection("posts").get();
+    for (int i = 0; i < querySnapshot.docs.length; i++) {
+      LinkedHashMap<dynamic, dynamic> data = querySnapshot.docs[i].data() as LinkedHashMap<dynamic, dynamic>;
+      if (data["bookMarked"] != null) {
+        List<dynamic> allbooksmarkedUsers = data["bookMarked"] ?? {};
+        if (allbooksmarkedUsers.contains(uid)) {
+          counter++;
+        }
+      }
+    }
+    numOfSsavedPosts = counter;
+  }
+
+  Future<bool> onBackPress() {
+    return Future.value(false);
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     const webScreenSize = 600;
-
+    print(numOfSsavedPosts);
+    print("svaed posts");
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: width > webScreenSize
@@ -56,79 +91,61 @@ class _SavedPostsState extends State<SavedPosts> {
           : AppBar(
         elevation: 0,
         backgroundColor: AppColors.spaceCadet,
+        leading: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.arrow_back)), //
         centerTitle: false,
         title: const Text(
           'Saved Posts',
           style: TextStyle(color: Colors.white),
         ),
-
-        actions: [
-
-          IconButton(
-            icon: const Icon(
-              Icons.bookmark_border,
-              color: primaryColor,
-
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SavedPosts()),
-              );
-            },
-
-          ),
-          IconButton(
-            icon: const Icon(
-              Icons.add_circle_outline,
-              color: primaryColor,
-
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const FixedUpPost()),
-              );
-            },
-
-          ),
-        ],
       ),
-      body: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection('posts').orderBy('postId').snapshots(),
-        // stream: FirebaseFirestore.instance.collection('posts').orderBy("timestamp").snapshots(),
-        builder: (context,
-            AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-          // Map<String, dynamic> holder = snapshot.data!.docs[index].data();
-          // List allIds = holder["bookMarked"];
-          // if (allIds.contains(uid)) {
-            return ListView.builder(
-              itemCount: snapshot.data!.docs.length,
-              itemBuilder: (ctx, index) => Container(
-                margin: EdgeInsets.symmetric(
-                  horizontal: width > webScreenSize ? width * 0.3 : 0,
-                  vertical: width > webScreenSize ? 15 : 0,
-                ),
-                child: SavedPostCard(
-                  snap: snapshot.data!.docs[index].data(),
-                  isAdmin: false,
-                ),
+      body: WillPopScope(
+        onWillPop: onBackPress,
+        child: Stack(
+          children: [
+            Align(
+              alignment: Alignment.center, // Align however you like (i.e .centerRight, centerLeft)
+              child: Visibility(
+                visible: (numOfSsavedPosts == 0),
+                child: Text("No posts currently saved...",           textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 18),),
               ),
-            );
-          // }
-          // else {
-          //   return Container(
-          //     width: 0,
-          //     height: 0,
-          //   )
-          // }
-
-        },
+            ),
+            Column(
+              children: [
+                Expanded(
+                  child: StreamBuilder(
+                    stream: FirebaseFirestore.instance.collection('schools').doc(widget.schoolName).collection('posts').orderBy('postId').snapshots(),
+                    // stream: FirebaseFirestore.instance.collection('posts').orderBy("timestamp").snapshots(),
+                    builder: (context,
+                        AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
+                      return ListView.builder(
+                        itemCount: snapshot.data!.docs.length,
+                        itemBuilder: (ctx, index) => Container(
+                          margin: EdgeInsets.symmetric(
+                            horizontal: width > webScreenSize ? width * 0.3 : 0,
+                            vertical: width > webScreenSize ? 15 : 0,
+                          ),
+                          child: SavedPostCard(
+                            snap: snapshot.data!.docs[index].data(),
+                            isAdmin: false,
+                            schoolName: widget.schoolName,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

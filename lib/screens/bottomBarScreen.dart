@@ -16,18 +16,32 @@ import 'package:provider/provider.dart';
 
 import 'chips.dart';
 
+/**
+ * bottom bar used for navigation between homepage and the service opportunities page
+ * For regular user
+ */
+
 class bottomBarScreen extends StatefulWidget {
+  final String schoolName;
+  const bottomBarScreen({
+    Key? key,
+    required this.schoolName,
+  }) : super(key: key);
+
   @override
   _bottomBarScreenState createState() => _bottomBarScreenState();
 }
 
 class _bottomBarScreenState extends State<bottomBarScreen> {
   int selectedPage = 0;
+  final _pageOptions = [];
 
-  final _pageOptions = [
-    HomePage2(),
-    FeedScreen(),
-  ];
+  @override
+  void initState()  {
+    super.initState();
+    _pageOptions.add(HomePage2(schoolName: widget.schoolName));
+    _pageOptions.add(FeedScreen(schoolName: widget.schoolName));
+  }
 
   @override
   Widget build(BuildContext context) {

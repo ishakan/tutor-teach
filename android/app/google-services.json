@@ -7,17 +7,17 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:472157341365:android:114d2faaa81053171de0fc",
+        "mobilesdk_app_id": "1:472157341365:android:f3245de9d430bf021de0fc",
         "android_client_info": {
-          "package_name": "com.example.google_firebase_signin"
+          "package_name": "com.edifly.google_firebase_signin"
         }
       },
       "oauth_client": [
         {
-          "client_id": "472157341365-22lpr0rrt0rlj7dueflupjgdmmj77udb.apps.googleusercontent.com",
+          "client_id": "472157341365-c00l0nkanbcu8j8uoqjfhqruq9elsnt3.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.google_firebase_signin",
+            "package_name": "com.edifly.google_firebase_signin",
             "certificate_hash": "95e7d098ff8908f1de6a84a08ef66b7687a022ca"
           }
         },
@@ -39,10 +39,10 @@
               "client_type": 3
             },
             {
-              "client_id": "472157341365-qkfdh7s37cira8rk92p467gg7cbd9gdh.apps.googleusercontent.com",
+              "client_id": "472157341365-lr01atipk3gu9hph4c3gnsofu5fmbet9.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.timelessfusionapps.smartTalk"
+                "bundle_id": "com.example.googleFirebaseSignin"
               }
             }
           ]

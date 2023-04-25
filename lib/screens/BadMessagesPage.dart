@@ -16,7 +16,12 @@ import 'package:provider/provider.dart';
 
 
 class BadMessagesScreen extends StatefulWidget {
-  const BadMessagesScreen({Key? key}) : super(key: key);
+  final String schoolName;
+  const BadMessagesScreen({
+    Key? key,
+    required this.schoolName,
+  }) : super(key: key);
+  // const BadMessagesScreen({Key? key}) : super(key: key);
 
   @override
   State<BadMessagesScreen> createState() => _BadMessagesScreenState();
@@ -24,6 +29,8 @@ class BadMessagesScreen extends StatefulWidget {
 
 class _BadMessagesScreenState extends State<BadMessagesScreen> {
   late AuthProvider authProvider;
+
+  late DocumentReference _SchooldocRef;
 
   Future<void> googleSignOut() async {
     authProvider.googleSignOut();
@@ -34,8 +41,13 @@ class _BadMessagesScreenState extends State<BadMessagesScreen> {
   @override
   void initState() {
     super.initState();
+    _SchooldocRef = FirebaseFirestore.instance.collection('schools').doc(widget.schoolName);
     authProvider = context.read<AuthProvider>();
   }
+
+  /**
+   * feed builder for bad mesages shown to the adminstrator, StreamBuilder
+   */
 
   @override
   Widget build(BuildContext context) {
@@ -63,13 +75,13 @@ class _BadMessagesScreenState extends State<BadMessagesScreen> {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const GoToTutorsPage()));
+                          builder: (context) => GoToTutorsPage(schoolName: widget.schoolName,)));
                 },
                 icon: const Icon(Icons.supervisor_account_rounded)),
           ],
       ),
       body: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection('bad_messages').orderBy("timestamp").snapshots(),
+        stream: _SchooldocRef.collection('bad_messages').orderBy("timestamp").snapshots(),
         builder: (context,
             AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {

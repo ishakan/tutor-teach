@@ -13,11 +13,20 @@ import 'package:provider/provider.dart';
 import '../providers/profile_provider.dart';
 
 class AddPostScreen extends StatefulWidget {
-  const AddPostScreen({Key? key}) : super(key: key);
+  final String schoolName;
+  // final bool isAdmin;
+  const AddPostScreen({
+    Key? key,
+    required this.schoolName,
+  }) : super(key: key);
 
   @override
   _AddPostScreenState createState() => _AddPostScreenState();
 }
+
+/**
+ * page for uploading post onto service hour opportunity feed
+ */
 
 class _AddPostScreenState extends State<AddPostScreen> {
   Uint8List? _file;
@@ -33,16 +42,16 @@ class _AddPostScreenState extends State<AddPostScreen> {
         return SimpleDialog(
           title: const Text('Create a Post'),
           children: <Widget>[
-            SimpleDialogOption(
-                padding: const EdgeInsets.all(20),
-                child: const Text('Take a photo'),
-                onPressed: () async {
-                  Navigator.pop(context);
-                  Uint8List file = await pickImage(ImageSource.camera);
-                  setState(() {
-                    _file = file;
-                  });
-                }),
+            // SimpleDialogOption(
+            //     padding: const EdgeInsets.all(20),
+            //     child: const Text('Take a photo'),
+            //     onPressed: () async {
+            //       Navigator.pop(context);
+            //       Uint8List file = await pickImage(ImageSource.camera);
+            //       setState(() {
+            //         _file = file;
+            //       });
+            //     }),
             SimpleDialogOption(
                 padding: const EdgeInsets.all(20),
                 child: const Text('Choose from Gallery'),
@@ -66,6 +75,13 @@ class _AddPostScreenState extends State<AddPostScreen> {
     );
   }
 
+  /**
+   * updates postingImage, connecting to Firestore methods to post onto Database
+   * @param uid
+   * @param username
+   * @param profImage
+   */
+
   void postImage(String uid, String username, String profImage) async {
     setState(() {
       isLoading = true;
@@ -80,6 +96,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
         _descriptionController.text,
         username,
         profImage,
+        widget.schoolName,
       );
       if (res == "success") {
         setState(() {

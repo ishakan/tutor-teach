@@ -6,7 +6,10 @@ import 'package:country_code_picker/country_code_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_firebase_signin/providers/auth_provider.dart';
 import 'package:google_firebase_signin/resources/firestore_methods.dart';
+import 'package:google_firebase_signin/screens/contact_page.dart';
+import 'package:google_firebase_signin/screens/login_page.dart';
 import 'package:google_firebase_signin/screens/seecode.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -19,7 +22,13 @@ import 'package:google_firebase_signin/providers/profile_provider.dart';
 
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({Key? key}) : super(key: key);
+  // const scienceFeedScreen({Key? key}) : super(key: key);
+  final String schoolName;
+  // final bool isAdmin;
+  const ProfilePage({
+    Key? key,
+    required this.schoolName,
+  }) : super(key: key);
 
   @override
   _ProfilePageState createState() => _ProfilePageState();
@@ -34,6 +43,11 @@ class Item {
   String headerValue;
   bool isExpanded;
 }
+
+
+/**
+ * generates all titles for subjects displayed in users profile page
+ */
 
 List<Item> generateItems(int numberOfItems) {
   return List<Item>.generate(numberOfItems, (int index) {
@@ -60,6 +74,8 @@ class _ProfilePageState extends State<ProfilePage> {
   TextEditingController? displayNameController, aboutMeController, isTutorController, testingController;
   final TextEditingController _phoneController = TextEditingController();
 
+  late DocumentReference _SchooldocRef;
+
   late String currentUserId;
   String dialCodeDigits = '+00', id = '', displayName = '';
   String photoUrl = '';
@@ -68,15 +84,17 @@ class _ProfilePageState extends State<ProfilePage> {
   String testing = '';
   String isTutor = '';
   String email = '';
+  String schoolName = "";
+  String fcmToken = "";
 
   bool isPageLoading = false;
   bool isLoading = false, value = false;
   File? avatarImageFile;
   late ProfileProvider profileProvider;
+  late AuthProvider authProvider;
   final FocusNode focusNodeNickname = FocusNode();
 
-  CollectionReference _collectionRef =
-  FirebaseFirestore.instance.collection('subjects');
+  late CollectionReference _collectionRef;
 
   late GlobalKey<ScaffoldState> _key;
   late bool _isSelected;
@@ -95,6 +113,9 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState()  {
     super.initState();
     profileProvider = context.read<ProfileProvider>();
+    authProvider = context.read<AuthProvider>();
+    _SchooldocRef =  FirebaseFirestore.instance.collection('schools').doc(widget.schoolName);
+    _collectionRef = FirebaseFirestore.instance.collection('schools').doc(widget.schoolName).collection('subjects');
     forAsync();
   }
 
@@ -132,7 +153,7 @@ class _ProfilePageState extends State<ProfilePage> {
       _companies.add(CompanyWidget(allSubjects[i]));
     }
 
-    readLocal();
+    await readLocal();
     int lenOfList = allSubjects.length - 1;
     for (int i =0; i < lenOfList; i++) {
       if (allSubjectStates[allSubjects[i]] == true) {
@@ -146,11 +167,15 @@ class _ProfilePageState extends State<ProfilePage> {
     print(_filters);
   }
 
+  /**
+   * gets all courses for any subject
+   */
+
   Future<void> getSubjects() async {
     final QuerySnapshot result =
-    await FirebaseFirestore.instance.collection('subjects').get();
+    await _SchooldocRef.collection('subjects').get();
     final List<DocumentSnapshot> documents = result.docs;
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection("subjects").get();
+    QuerySnapshot querySnapshot = await _SchooldocRef.collection("subjects").get();
     for (int i = 0; i < querySnapshot.docs.length; i++) {
       String subjectName = querySnapshot.docs[i].id.toString();
       allSubjects.add(subjectName);
@@ -166,36 +191,32 @@ class _ProfilePageState extends State<ProfilePage> {
       }
     }
   }
-  //
-  //
-  // Future<bool> getDataForSubject(bool state, String name) async {
-  //   var collection = FirebaseFirestore.instance.collection('subjects');
-  //   var docSnapshot = await collection.doc(name).get();
-  //   if (docSnapshot.exists) {
-  //     Map<String, dynamic>? data = docSnapshot.data();
-  //       print(data);
-  //       print("getDataForSubject");
-  //
-  //   }
-  //
-  //   return false;
-  // }
 
-  void readLocal() async {
+  /**
+   * initializes all base varaibles
+   */
+
+  Future<void> readLocal() async {
+    currentUserId = authProvider.getFirebaseUserId()!;
+    print(currentUserId);
+    late LinkedHashMap<String, dynamic> holdsData;
+    DocumentReference documentReference = _SchooldocRef.collection('users').doc(id);
+    await documentReference.get().then((snapshot) {
+      holdsData = snapshot.data() as LinkedHashMap<String, dynamic>;
+    });
+
+    print(holdsData);
     setState(() {
-      id = profileProvider.getPrefs(FirestoreConstants.id) ?? "";
-      displayName = profileProvider.getPrefs(FirestoreConstants.displayName) ?? "";
-
-      photoUrl = profileProvider.getPrefs(FirestoreConstants.photoUrl) ?? "";
-      phoneNumber = profileProvider.getPrefs(FirestoreConstants.phoneNumber) ?? "";
-      aboutMe = profileProvider.getPrefs(FirestoreConstants.aboutMe) ?? "";
-      testing = profileProvider.getPrefs(FirestoreConstants.testing) ?? "";
-      isTutor = profileProvider.getPrefs(FirestoreConstants.isTutor) ?? "";
-      email = profileProvider.getPrefs(FirestoreConstants.email) ?? "";
-      print("is Tutor??");
-      print(profileProvider.getPrefs(FirestoreConstants.isTutor).toString() + " letssee");
-      print(profileProvider.getPrefs(FirestoreConstants.testing).toString());
-
+      id = holdsData["id"] ?? "";
+      displayName = holdsData["displayName"] ?? "";
+      photoUrl = holdsData["photoUrl"] ?? "";
+      phoneNumber = holdsData["phoneNumber"] ?? "";
+      aboutMe = holdsData["aboutMe"] ?? "";
+      testing = holdsData["testing"] ?? "";
+      isTutor = holdsData["isTutor"] ?? "";
+      email = holdsData["email"] ?? "";
+      schoolName = holdsData["schoolName"] ?? "";
+      fcmToken = holdsData["fcmToken"] ?? "";
     });
 
     print(aboutMe);
@@ -207,57 +228,52 @@ class _ProfilePageState extends State<ProfilePage> {
     isTutorController = TextEditingController(text: isTutor);
   }
 
+
   Future getImage() async {
-    // ImagePicker imagePicker = ImagePicker();
-    // XFile? pickedFile = await imagePicker
-    //     .pickImage(source: ImageSource.gallery)
-    //     .catchError((onError) {
-    //   Fluttertoast.showToast(msg: onError.toString());
-    // });
-    // File? image;
-    // if (pickedFile != null) {
-    //   image = File(pickedFile.path);
-    // }
-    // if (image != null) {
-    //   setState(() {
-    //     avatarImageFile = image;
-    //     isLoading = true;
-    //   });
-    //   uploadFile();
-    // }
+
   }
 
-  Future uploadFile() async {
-    String fileName = id;
-    UploadTask uploadTask = profileProvider.uploadImageFile(
-        avatarImageFile!, fileName);
-    try {
-      TaskSnapshot snapshot = await uploadTask;
-      photoUrl = await snapshot.ref.getDownloadURL();
-      ChatUser updateInfo = ChatUser(id: id,
-          photoUrl: photoUrl,
-          displayName: displayName,
-          phoneNumber: phoneNumber,
-          aboutMe: aboutMe,
-          testing: testing,
-          isTutor: isTutor,
-          email: email);
-      profileProvider.updateFirestoreData(
-          FirestoreConstants.pathUserCollection, id, updateInfo.toJson())
-          .then((value) async {
-        await profileProvider.setPrefs(FirestoreConstants.photoUrl, photoUrl);
-        setState(() {
-          isLoading = false;
-        });
-      });
-    } on FirebaseException catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-      Fluttertoast.showToast(msg: e.toString());
-    }
-  }
+  /**
+   * makes sure all requirements are met to sign up as tutor
+   */
 
+  deleteAccount(String uid) async {
+    // set up the button
+    Widget okButton = TextButton(
+      child: Text("OK"),
+      onPressed: () async {
+        await FireStoreMethods().deleteAccount(schoolName, uid, authProvider);
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => LoginPage()));
+
+        },
+    );
+    Widget cancel = TextButton(
+      child: Text("Cancel"),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+    );
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text("Delete?"),
+      content: Text("Are you sure you want to delete your account? This action cannot be reversed."),
+      actions: [
+        okButton,
+        cancel,
+      ],
+    );
+
+    // show the dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
 
   showAlertDialog(BuildContext context) {
     // set up the button
@@ -286,18 +302,31 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  /**
+   * updates user Information
+   */
+
   void updateFirestoreData() {
-    if (aboutMe.length == 0) {
+    if (isTutor == "yes" && aboutMe.length == 0) {
       showAlertDialog(context);
     } else {
-      for (int i =0; i < allSubjects.length; i++) {
-        print("Subject");
-        print(allSubjects[i]);
-        print(allSubjectStates[allSubjects[i]]);
-        if (allSubjectStates[allSubjects[i]] == true) {
-          FireStoreMethods().updateSubject(allSubjects[i], id, true);
-        } else if (allSubjectStates[allSubjects[i]] == false) {
-          FireStoreMethods().updateSubject(allSubjects[i], id, false);
+      if (isTutor == "yes") {
+        for (int i =0; i < allSubjects.length; i++) {
+          print("Subject");
+          print(allSubjects[i]);
+          print(allSubjectStates[allSubjects[i]]);
+          if (allSubjectStates[allSubjects[i]] == true) {
+            FireStoreMethods().updateSubject(allSubjects[i], id, true, widget.schoolName);
+          } else if (allSubjectStates[allSubjects[i]] == false) {
+            FireStoreMethods().updateSubject(allSubjects[i], id, false, widget.schoolName);
+          }
+        }
+      } else {
+        for (int i =0; i < allSubjects.length; i++) {
+          print("Subject");
+          print(allSubjects[i]);
+          print(allSubjectStates[allSubjects[i]]);
+          FireStoreMethods().updateSubject(allSubjects[i], id, false, widget.schoolName);
         }
       }
       focusNodeNickname.unfocus();
@@ -314,9 +343,11 @@ class _ProfilePageState extends State<ProfilePage> {
           aboutMe: aboutMe,
           testing: testing,
           isTutor: isTutor,
-          email: email);
+          email: email,
+          schoolName: schoolName,
+          fcmToken: fcmToken);
       profileProvider.updateFirestoreData(
-          FirestoreConstants.pathUserCollection, id, updateInfo.toJson())
+          FirestoreConstants.pathUserCollection, id, updateInfo.toJson(), schoolName)
           .then((value) async {
         await profileProvider.setPrefs(
             FirestoreConstants.displayName, displayName);
@@ -332,6 +363,8 @@ class _ProfilePageState extends State<ProfilePage> {
             FirestoreConstants.isTutor, isTutor);
         await profileProvider.setPrefs(
             FirestoreConstants.email, email);
+        await profileProvider.setPrefs(
+            FirestoreConstants.schoolName, schoolName);
         setState(() {
           isLoading = false;
         });
@@ -339,7 +372,10 @@ class _ProfilePageState extends State<ProfilePage> {
       }).catchError((onError) {
         Fluttertoast.showToast(msg: onError.toString());
       });
+      setState(() {});
+
     }
+    setState(() {});
   }
 
   void _onRememberMeChanged(bool? newValue) => setState(() {
@@ -366,6 +402,15 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    bool _loading = false;
+    void _startLoading() {
+      setState(() {
+        _loading = true;
+      });
+      // Do some time-consuming work here
+      // Once the work is done, call _stopLoading() to hide the progress indicator
+    }
+
     print("IS THIS PRINTING??");
     if (isTutor == "yes") {
         value = true;
@@ -373,11 +418,11 @@ class _ProfilePageState extends State<ProfilePage> {
     return (!isPageLoading) ? Scaffold(
       body:
       Center(
-        child: Column(
+        child: _loading ? CircularProgressIndicator() : Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              "TutorTeach",
+              "EdiFly",
               style: TextStyle(
                   fontWeight: FontWeight.bold, fontSize: Sizes.dimen_18),
             ),
@@ -407,9 +452,50 @@ class _ProfilePageState extends State<ProfilePage> {
         Scaffold(
           appBar: AppBar(
             elevation: 0,
+            leading: IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.arrow_back)), //
             title: const Text(
               AppConstants.profileTitle,
             ),
+            actions: [
+              PopupMenuTheme(
+                data: PopupMenuThemeData(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  color: Colors.white,
+                  elevation: 3, // set the elevation to 0 to remove the shadow
+                ),
+                child: PopupMenuButton(
+                  icon: Icon(Icons.settings),
+                  itemBuilder: (BuildContext context) => <PopupMenuEntry>[
+                    PopupMenuItem(
+                    value: 1,
+                      child: GestureDetector(
+                        onTap: () {
+                          _startLoading();
+                          deleteAccount(currentUserId);
+                        },
+                        child: Text('Delete Account'),
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 2,
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ContactPage()));
+                        },
+                        child: Text('Contact Us'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
           body: Stack(
             children: [
@@ -497,6 +583,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 borderSide: BorderSide(color: Colors.indigo),
                               ),
                             ),
+                            keyboardType: TextInputType.number,
                             // decoration: kTextInputDecoration.copyWith(
                             //   hintText: '# Grade',
                             controller: aboutMeController,
@@ -559,6 +646,11 @@ class _ProfilePageState extends State<ProfilePage> {
   }
   final List<Item> _data = generateItems(5);
 
+  /**
+   * generates panels displaying subjects
+   */
+
+
   Widget _buildPanel() {
     return ExpansionPanelList(
       expansionCallback: (int index, bool isExpanded) {
@@ -610,6 +702,9 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  /**
+   * builds chips dipslaying courses
+   */
 
   Iterable<Widget> get companyPosition sync* {
     for (CompanyWidget company in _companies) {

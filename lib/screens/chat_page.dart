@@ -1,7 +1,10 @@
 import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
+// import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_firebase_signin/models/push_notification.dart';
+import 'package:google_firebase_signin/notification_service.dart';
 import 'package:google_firebase_signin/screens/bottomBarScreen.dart';
 import 'package:google_firebase_signin/screens/home_page2.dart';
 import 'package:image_picker/image_picker.dart';
@@ -17,21 +20,32 @@ import 'package:google_firebase_signin/providers/auth_provider.dart';
 import 'package:google_firebase_signin/providers/chat_provider.dart';
 import 'package:google_firebase_signin/providers/profile_provider.dart';
 import 'package:google_firebase_signin/screens/login_page.dart';
+import 'package:sentiment_dart/sentiment_dart.dart';
 import 'package:url_launcher/url_launcher.dart';
 // import 'package:firebase_messaging/firebase_messaging.dart';
+
+// Future _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+//   print("Handling a background message: ${message.messageId}");
+// }
+
+/**
+ * Page for all chat messages between regular students and student tutors
+ */
 
 class ChatPage extends StatefulWidget {
   final String peerId;
   final String peerAvatar;
   final String peerNickname;
   final String userAvatar;
+  final String schoolName;
 
   const ChatPage(
       {Key? key,
         required this.peerNickname,
         required this.peerAvatar,
         required this.peerId,
-        required this.userAvatar})
+        required this.userAvatar,
+        required this.schoolName})
       : super(key: key);
 
   @override
@@ -39,6 +53,9 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
+  late int _totalNotifications;
+  // late final FirebaseMessaging _messaging;
+  PushNotification? _notificatinInfo;
   late String currentUserId;
 
   List<QueryDocumentSnapshot> listMessages = [];
@@ -51,7 +68,6 @@ class _ChatPageState extends State<ChatPage> {
   bool isLoading = false;
   bool isShowSticker = false;
   String imageUrl = '';
-  String? mtoken = "";
 
   final TextEditingController textEditingController = TextEditingController();
   final ScrollController scrollController = ScrollController();
@@ -72,44 +88,6 @@ class _ChatPageState extends State<ChatPage> {
     readLocal();
     // requestPermission();
   }
-  //
-  // void getToken() async {
-  //   await FirebaseMessaging.instance.getToken().then(
-  //           (token) {
-  //         setState(() {
-  //           mtoken = token;
-  //           print("My token is $mtoken");
-  //         });
-  //       }
-  //   );
-  // }
-  //
-  // void requestPermission() async {
-  //   FirebaseMessaging messaging = FirebaseMessaging.instance;
-  //
-  //   NotificationSettings settings = await messaging.requestPermission(
-  //     alert: true,
-  //     announcement: false,
-  //     badge: true,
-  //     carPlay: false,
-  //     criticalAlert: false,
-  //     provisional: false,
-  //     sound: true,
-  //   );
-  //
-  //   if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-  //     print("user granted permission");
-  //   } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
-  //     print("user granted proisional ermission");
-  //   } else {
-  //     print("User declined permission");
-  //   }
-  // }
-  //
-  // void main() {
-  //   WidgetsFlutterBinding.ensureInitialized();
-  //   await FirebaseMessaging.instance.getInitialMessage();
-  // }
 
   _scrollListener() {
     if (scrollController.offset >= scrollController.position.maxScrollExtent &&
@@ -127,6 +105,9 @@ class _ChatPageState extends State<ChatPage> {
       });
     }
   }
+  /**
+   * initializing base varibles
+   */
 
   void readLocal() {
     if (authProvider.getFirebaseUserId()?.isNotEmpty == true) {
@@ -179,14 +160,6 @@ class _ChatPageState extends State<ChatPage> {
     return Future.value(false);
   }
 
-  void _callPhoneNumber(String phoneNumber) async {
-    var url = 'tel://$phoneNumber';
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      throw 'Error Occurred';
-    }
-  }
 
   void uploadImageFile() async {
     String fileName = DateTime.now().millisecondsSinceEpoch.toString();
@@ -206,15 +179,57 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  void onSendMessage(String content, int type) {
-    if (content.trim().isNotEmpty) {
+  /**
+   * sendingMesage and updating FirebaseDatabase with message data
+   */
+  void onSendMessage(String content, int type) async {
+
+    CollectionReference users = FirebaseFirestore.instance.collection('schools').doc(widget.schoolName).collection('users');
+    DocumentReference userRef = users.doc(widget.peerId).collection('userMessaged').doc(currentUserId);
+    print(userRef);
+
+    print(widget.peerId);
+    print(currentUserId);
+    String dat2a = "state";
+    String state = "";
+
+    print(userRef.get());
+
+    await userRef.get().then((DocumentSnapshot documentSnapshot) {
+      print(documentSnapshot);
+      if (documentSnapshot.exists) {
+        var data = documentSnapshot.data() as Map<String, dynamic>;
+        print(data);
+        print("DAAA");
+        state = data[dat2a].toString();
+      }
+    });
+    print(state);
+    print("THIS IS THE STATE PRINTING OUTT");
+
+    if (state == "blocked") {
+      Fluttertoast.showToast(
+          msg: 'Unable to send a message. This user has you currently blocked.', backgroundColor: Colors.black);
+    } else if (content.trim().isNotEmpty) {
       final filter = ProfanityFilter();
+      String original = content;
+      content = content.toLowerCase();
       List<String> allWords = filter.wordsToFilterOutList;
       String cleanString = content;
       bool hasProfanity = false;
+
+      print(Sentiment.analysis(content));
+      SentimentResult holdSentimentAnalysis = Sentiment.analysis(content);
+      if (holdSentimentAnalysis.score < 0) {
+        cleanString = "****";
+        original = "****";
+        hasProfanity = true;
+      }
+
       for (int i =0; i< allWords.length; i++) {
         if (content.contains(allWords[i])) {
           cleanString = "****";
+          original = "****";
           hasProfanity = true; break;
         }
       }
@@ -226,20 +241,27 @@ class _ChatPageState extends State<ChatPage> {
 
       if (hasProfanity) {
         chatProvider.updateBadMessage(
-            nonClean, type, currentUserId, widget.peerId);
+            nonClean, type, currentUserId, widget.peerId, widget.schoolName);
       }
 
       textEditingController.clear();
       chatProvider.sendChatMessage(
-          content, type, groupChatId, currentUserId, widget.peerId);
+          original, type, groupChatId, currentUserId, widget.peerId, widget.schoolName);
       scrollController.animateTo(0,
           duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+
+      // String token = "";
+      // LocalNotificationService.sendNotification(title: "New message", message: content, token: token);
+      // LocalNotificationService
     } else {
       Fluttertoast.showToast(
           msg: 'Nothing to send', backgroundColor: Colors.grey);
     }
   }
 
+  /**
+   * checking if message was recieved
+   */
   // checking if received message
   bool isMessageReceived(int index) {
     if ((index > 0 &&
@@ -251,6 +273,10 @@ class _ChatPageState extends State<ChatPage> {
       return false;
     }
   }
+
+  /**
+   * checking if message was sent
+   */
 
   // checking if sent message
   bool isMessageSent(int index) {
@@ -277,17 +303,6 @@ class _ChatPageState extends State<ChatPage> {
         centerTitle: true,
         title: Text('Chatting with ${widget.peerNickname}'.trim()),
         actions: [
-          // IconButton(
-          //   onPressed: () {
-          //     ProfileProvider profileProvider;
-          //     profileProvider = context.read<ProfileProvider>();
-          //     String callPhoneNumber =
-          //         profileProvider.getPrefs(FirestoreConstants.phoneNumber) ??
-          //             "";
-          //     _callPhoneNumber(callPhoneNumber);
-          //   },
-          //   icon: const Icon(Icons.phone),
-          // ),
         ],
       ),
       body: SafeArea(
@@ -306,8 +321,9 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _moveToScreen2(BuildContext context) =>
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => bottomBarScreen()));
+      Navigator.pop(context, true);
+  // Navigator.pushReplacement(
+  // context, MaterialPageRoute(builder: (context) => bottomBarScreen(schoolName: widget.schoolName,)));
 
   Widget buildMessageInput() {
     return SizedBox(
@@ -543,11 +559,14 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
+  /**
+   * building list displaying all of the messages
+   */
   Widget buildListMessage() {
     return Flexible(
       child: groupChatId.isNotEmpty
           ? StreamBuilder<QuerySnapshot>(
-          stream: chatProvider.getChatMessage(groupChatId, _limit),
+          stream: chatProvider.getChatMessage(groupChatId, _limit, widget.schoolName),
           builder: (BuildContext context,
               AsyncSnapshot<QuerySnapshot> snapshot) {
             if (snapshot.hasData) {

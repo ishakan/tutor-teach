@@ -12,25 +12,39 @@ import 'package:google_firebase_signin/allWidgets/post_card.dart';
 import 'package:provider/provider.dart';
 
 class AdminFeedScreen extends StatefulWidget {
-  const AdminFeedScreen({Key? key}) : super(key: key);
+  final String schoolName;
+  const AdminFeedScreen({
+    Key? key,
+    required this.schoolName,
+  }) : super(key: key);
+  // const AdminFeedScreen({Key? key}) : super(key: key);
 
   @override
   State<AdminFeedScreen> createState() => _AdminFeedScreenState();
 }
 
 class _AdminFeedScreenState extends State<AdminFeedScreen> {
-  bool isAdmin = false;
+  // bool isAdmin = false;
 
-  @override
+  late DocumentReference _SchooldocRef;
+
+
+    @override
   void initState()  {
     super.initState();
+    _SchooldocRef =
+        FirebaseFirestore.instance.collection('schools').doc(widget.schoolName);
     forAsync();
   }
 
   void forAsync() async {
     AuthProvider authProvider = context.read<AuthProvider>();
-    isAdmin = await authProvider.isAdminEmail();
+    // isAdmin = await authProvider.isAdminEmail();
   }
+
+  /**
+   * Feed for bad messages that are shown to the administrator
+   */
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +66,7 @@ class _AdminFeedScreenState extends State<AdminFeedScreen> {
         ),
       ),
       body: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection('posts').snapshots(),
+        stream: _SchooldocRef.collection('posts').snapshots(),
         builder: (context,
             AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -70,6 +84,7 @@ class _AdminFeedScreenState extends State<AdminFeedScreen> {
               child: PostCard(
                 snap: snapshot.data!.docs[index].data(),
                 isAdmin: true,
+                schoolName: widget.schoolName,
               ),
             ),
           );

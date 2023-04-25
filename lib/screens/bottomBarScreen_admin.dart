@@ -17,18 +17,38 @@ import 'package:provider/provider.dart';
 
 import 'chips.dart';
 
+
+/**
+ * bottom bar used for navigation between homepage and the service opportunities page
+ * For administrator
+ */
+
 class bottomBarScreenAdmin extends StatefulWidget {
+  final String schoolName;
+  const bottomBarScreenAdmin({
+    Key? key,
+    required this.schoolName,
+  }) : super(key: key);
+
   @override
   _bottomBarScreenAdminState createState() => _bottomBarScreenAdminState();
 }
 
 class _bottomBarScreenAdminState extends State<bottomBarScreenAdmin> {
   int selectedPage = 0;
+  final _pageOptions = [];
 
-  final _pageOptions = [
-    BadMessagesScreen(),
-    AdminFeedScreen(),
-  ];
+  @override
+  void initState()  {
+    super.initState();
+    _pageOptions.add(BadMessagesScreen(schoolName: widget.schoolName));
+    _pageOptions.add(AdminFeedScreen(schoolName: widget.schoolName));
+  }
+
+  // final _pageOptions = [
+  //   BadMessagesScreen(),
+  //   AdminFeedScreen(),
+  // ];
 
   @override
   Widget build(BuildContext context) {

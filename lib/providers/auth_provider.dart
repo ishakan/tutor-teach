@@ -1,13 +1,19 @@
+import 'dart:collection';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_firebase_signin/models/pair.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_firebase_signin/allConstants/all_constants.dart';
 import 'package:google_firebase_signin/models/chat_user.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart' show PlatformException, rootBundle;
+import 'package:the_apple_sign_in/scope.dart';
+import 'package:the_apple_sign_in/the_apple_sign_in.dart';
 
 enum Status {
   uninitialized,
@@ -29,16 +35,34 @@ class AuthProvider extends ChangeNotifier {
 
   AuthProvider(
       {required this.googleSignIn,
-      required this.firebaseAuth,
-      required this.firebaseFirestore,
-      required this.prefs});
+        required this.firebaseAuth,
+        required this.firebaseFirestore,
+        required this.prefs});
 
   String? getFirebaseUserId() {
     return prefs.getString(FirestoreConstants.id);
   }
 
+  Future<String> getFirebaseEmail(String schoolName) async {
+    print("begnning?");
+    print(getFirebaseUserId());
+    var collection = await FirebaseFirestore.instance.collection("schools").doc(schoolName).collection('users').doc(getFirebaseUserId()).get();
+    String email = "";
+    if (collection.exists) {
+      Map<String, dynamic>? data = collection.data();
+      print(data);
+      print("DATAAA");
+      email = data!['email'].toString();
+    }
+    return email;
+  }
+
   Future<bool> isLoggedIn() async {
     bool isLoggedIn = await googleSignIn.isSignedIn();
+    // print(prefs.getString(FirestoreConstants.email));
+    print(prefs.getString(FirestoreConstants.id));
+    print("VALUES");
+
     if (isLoggedIn &&
         prefs.getString(FirestoreConstants.id)?.isNotEmpty == true) {
       return true;
@@ -47,40 +71,29 @@ class AuthProvider extends ChangeNotifier {
     }
   }
   // get user details
-  Future<ChatUser> getUserDetails() async {
+  Future<ChatUser> getUserDetails(String schoolName) async {
     User currentUser = FirebaseAuth.instance.currentUser!;
 
     DocumentSnapshot documentSnapshot =
-    await FirebaseFirestore.instance.collection('users').doc(currentUser.uid).get();
+    await FirebaseFirestore.instance.collection('schools').doc(schoolName).collection('users').doc(currentUser.uid).get();
 
     return ChatUser.fromSnap(documentSnapshot);
   }
 
 
-  Future<bool> isAdminEmail() async {
-    final googleUser = await googleSignIn.signIn();
-
-    var collection = FirebaseFirestore.instance.collection('allowed_email');
-    var docSnapshot = await collection.doc('allowed_email').get();
-    List<dynamic> holder = [];
-    if (docSnapshot.exists) {
-      Map<String, dynamic>? data = docSnapshot.data();
-      holder = data!['emails'] as List<dynamic>;
-    }
-    print(holder);
-    print(googleUser?.email);
-    print("IS ADMIN?");
-    return (holder.contains(googleUser?.email));
-
-  }
 
   Future<String> loadAsset() async {
     return await rootBundle.loadString('assets/terms_and_conditions.txt');
   }
 
+  Future<String> loadAsset2() async {
+    return await rootBundle.loadString('assets/apple_terms_and_conditions.txt');
+  }
+
   Future<bool> showAlertDialog(BuildContext context) async {
     double width = MediaQuery.of(context).size.width;
     String content = await loadAsset();
+    String content2 = await loadAsset2();
     return await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -95,9 +108,9 @@ class AuthProvider extends ChangeNotifier {
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
-                    Text(content),
+                    Text(content2 + "\n" + content),
                   ]
-            )
+              )
           ),
         ),
         actions: [
@@ -116,70 +129,15 @@ class AuthProvider extends ChangeNotifier {
     );
   }
 
-  // Future<bool> showAlertDialog(BuildContext context) async {
-  //
-  //   // set up the buttons
-  //
-  //   // set up the AlertDialog
-  //   double width = MediaQuery.of(context).size.width;
-  //   AlertDialog alert2 = AlertDialog(
-  //       contentPadding: EdgeInsets.only(left: 15, right: 15),
-  //       title: Center(child: Text("Terms and Conditions")),
-  //       shape: RoundedRectangleBorder(
-  //           borderRadius: BorderRadius.all(Radius.circular(10.0))),
-  //       content: Container(
-  //         // height: 200,
-  //         width: width,
-  //         child: SingleChildScrollView(
-  //           child: Column(
-  //             crossAxisAlignment: CrossAxisAlignment.stretch,
-  //             children: <Widget>[
-  //               // SizedBox(
-  //               //   height: 20,
-  //               // ),
-  //               Text(
-  //                 (await loadAsset()),
-  //               )
-  //             ],
-  //           ),
-  //         ),
-  //       ),
-  //       actions: [
-  //         Column(
-  //         crossAxisAlignment: CrossAxisAlignment.start,
-  //           children: <Widget>[
-  //             TextButton(
-  //               child: Text("Cancel"),
-  //               onPressed:  () {
-  //                 Navigator.pop(context, false);
-  //               },
-  //             )
-  //           ],
-  //         ),
-  //         TextButton(
-  //           child: Text("Accept"),
-  //           onPressed:  () {
-  //             print(status);
-  //             print("STATUS??");
-  //             Navigator.pop(context, true);
-  //           },
-  //         ),
-  //       ],
-  //   );
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return alert2;
-  //     },
-  //   );
-  // }
+  Future<Pair> handleGoogleSignIn(String schoolName, String needsToHave, BuildContext context) async {
 
-  Future<bool> handleGoogleSignIn(BuildContext context) async {
-    // await FirebaseFirestore.instance.collection('allowed_email').get()
-    // await FirebaseFirestore.instance.collection('allowed_email').doc(currentUser.uid).get();
+    Pair notWork = Pair(item1: false, item2: false);
+    Pair isAdmin = Pair(item1: true, item2: true);
+    Pair isStudent = Pair(item1: true, item2: false);
 
     _status = Status.authenticating;
     notifyListeners();
+
 
     final googleUser = await googleSignIn.signIn();
     final googleAuth = await googleUser!.authentication;
@@ -189,34 +147,68 @@ class AuthProvider extends ChangeNotifier {
     );
 
     final email = await googleUser.email;
+    // if (!email.contains(needsToHave))
 
 
     // GoogleSignInAccount? googleUser = await googleSignIn.signIn();
     if (googleUser != null
-        // && googleUser.email.contains("ncs.charter.k12.de.us")
+        && email.contains(needsToHave)
     ) {
       // GoogleSignInAuthentication? googleAuth = await googleUser.authentication;
       // final AuthCredential credential = GoogleAuthProvider.credential(
       //   accessToken: googleAuth.accessToken,
       //   idToken: googleAuth.idToken,
       // );
+      String fcmToken = "";
+      // final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+
+      // if (defaultTargetPlatform == TargetPlatform.iOS) {
+      //   // Code for iOS platform
+      //   _firebaseMessaging.requestPermission();
+      //   await _firebaseMessaging.getToken().then((token) {
+      //     fcmToken = token.toString();
+      //     print(token);
+      //
+      //   });
+      //   print("THIS SI THE TOKENENEN");
+      // }
 
       User? firebaseUser =
           (await firebaseAuth.signInWithCredential(credential)).user;
 
       if (firebaseUser != null) {
         final QuerySnapshot result = await firebaseFirestore
-            .collection(FirestoreConstants.pathUserCollection)
+            .collection(FirestoreConstants.allUsersCollection)
             .where(FirestoreConstants.id, isEqualTo: firebaseUser.uid)
             .get();
         final List<DocumentSnapshot> document = result.docs;
 
         print("CHECk IF CONTINUE?");
         if (document.isEmpty) {
+
+          print("Is Empty?");
           bool accepted = await showAlertDialog(context);
           if (accepted) {
             print("IS dialog happening??");
             firebaseFirestore
+                .collection(FirestoreConstants.allUsersCollection)
+                .doc(firebaseUser.uid)
+                .set({
+              FirestoreConstants.displayName: firebaseUser.displayName,
+              FirestoreConstants.photoUrl: firebaseUser.photoURL,
+              FirestoreConstants.id: firebaseUser.uid,
+              "createdAt: ": DateTime
+                  .now()
+                  .millisecondsSinceEpoch
+                  .toString(),
+              FirestoreConstants.chattingWith: null,
+              FirestoreConstants.email: email,
+              FirestoreConstants.schoolName: schoolName,
+              FirestoreConstants.fcmToken: fcmToken,
+            });
+
+            firebaseFirestore
+                .collection('schools').doc(schoolName)
                 .collection(FirestoreConstants.pathUserCollection)
                 .doc(firebaseUser.uid)
                 .set({
@@ -228,7 +220,9 @@ class AuthProvider extends ChangeNotifier {
                   .millisecondsSinceEpoch
                   .toString(),
               FirestoreConstants.chattingWith: null,
-              FirestoreConstants.email: email
+              FirestoreConstants.fcmToken: fcmToken,
+              FirestoreConstants.email: email,
+              FirestoreConstants.schoolName: schoolName
             });
 
             User? currentUser = firebaseUser;
@@ -241,8 +235,12 @@ class AuthProvider extends ChangeNotifier {
                 FirestoreConstants.phoneNumber, currentUser.phoneNumber ?? "");
             await prefs.setString(
                 FirestoreConstants.email, currentUser.email ?? "");
+            await prefs.setString(
+                FirestoreConstants.schoolName, schoolName ?? "");
+            await prefs.setString(
+                FirestoreConstants.fcmToken, fcmToken ?? "");
 
-            var collection = FirebaseFirestore.instance.collection('users').doc(
+            var collection = FirebaseFirestore.instance.collection('schools').doc(schoolName).collection('users').doc(
                 currentUser.uid).collection("userMessaged");
             collection
                 .doc('test') // <-- Document ID
@@ -251,7 +249,7 @@ class AuthProvider extends ChangeNotifier {
                 .catchError((error) => print('Add failed: $error'));
           } else {
             _status = Status.authenticateCanceled;
-            return false;
+            return notWork;
           }
         } else {
           DocumentSnapshot documentSnapshot = document[0];
@@ -268,21 +266,41 @@ class AuthProvider extends ChangeNotifier {
               FirestoreConstants.phoneNumber, userChat.phoneNumber);
           await prefs.setString(
               FirestoreConstants.email, userChat.email);
+          await prefs.setString(
+              FirestoreConstants.schoolName, userChat.schoolName);
+          await prefs.setString(
+              FirestoreConstants.fcmToken, fcmToken ?? "");
 
         }
         _status = Status.authenticated;
-
         notifyListeners();
-        return true;
+
+        LinkedHashMap<String, dynamic>? holdsData;
+
+        var collection = FirebaseFirestore.instance.collection('schools').doc(schoolName).collection('allowed_email');
+        var docSnapshot = await collection.doc('allowed_email').get();
+        List<dynamic> holder = [];
+        if (docSnapshot.exists) {
+          Map<String, dynamic>? data = docSnapshot.data();
+          print(data);
+          holder = data!['emails'] as List<dynamic>;
+        }
+        print(holder);
+        print("HOLDERR");
+        if (holder.contains(googleUser.email)) {
+          return isAdmin;
+        } else {
+          return isStudent;
+        }
       } else {
         _status = Status.authenticateError;
         notifyListeners();
-        return false;
+        return notWork;
       }
     } else {
       _status = Status.authenticateCanceled;
       notifyListeners();
-      return false;
+      return notWork;
     }
   }
 
@@ -291,5 +309,219 @@ class AuthProvider extends ChangeNotifier {
     await firebaseAuth.signOut();
     await googleSignIn.disconnect();
     await googleSignIn.signOut();
+    print("sign out successfull");
   }
+
+
+  // APPLE SIGN IN
+
+  Future<User> signInWithApple({List<Scope> scopes = const []}) async {
+    // 1. perform the sign-in request
+    final result = await TheAppleSignIn.performRequests(
+        [AppleIdRequest(requestedScopes: [Scope.email, Scope.fullName])]);
+    // 2. check the result
+    switch (result.status) {
+      case AuthorizationStatus.authorized:
+        final appleIdCredential = result.credential!;
+        final oAuthProvider = OAuthProvider('apple.com');
+        final credential = oAuthProvider.credential(
+          idToken: String.fromCharCodes(appleIdCredential.identityToken!),
+          accessToken:
+          String.fromCharCodes(appleIdCredential.authorizationCode!),
+        );
+        final userCredential =
+        await firebaseAuth.signInWithCredential(credential);
+        final firebaseUser = userCredential.user!;
+        print(firebaseUser.email);
+        print(firebaseUser.displayName);
+        print(firebaseUser.photoURL);
+        print(firebaseUser.uid);
+
+        print(scopes.contains(Scope.fullName));
+        final fullName = appleIdCredential.fullName;
+        if (fullName != null &&
+            fullName.givenName != null &&
+            fullName.familyName != null) {
+          final displayName = '${fullName.givenName} ${fullName.familyName}';
+          print("First");
+          print(displayName);
+          firebaseUser.updateDisplayName(displayName);
+          // await firebaseUser.updateDisplayName(displayName);
+        }
+        final email;
+        if (firebaseUser.email == null) {
+          email = appleIdCredential.email;
+          firebaseUser.updateEmail(email!);
+        } else {
+          email = firebaseUser.email;
+        }
+
+        if (firebaseUser.photoURL == null) {
+          firebaseUser.updatePhotoURL("https://lh3.googleusercontent.com/a/AItbvml7SYj9LRT5TH1XOt56azUbQYjqNgUB2JqnWffD=s96-c");
+        }
+
+        // print(appleIdCredential.email);
+        // print("EMAIL?");
+        // firebaseUser.updateEmail(email!);
+        // print("EMAIL>???");
+        // firebaseUser.updatePhotoURL("https://lh3.googleusercontent.com/a/AItbvml7SYj9LRT5TH1XOt56azUbQYjqNgUB2JqnWffD=s96-c");
+        print(firebaseUser.displayName);
+        Pair holdData = await appleSignIn(firebaseUser, "NewarkCharterSchool", "");
+        print(holdData.item1);
+        print(holdData.item2);
+        print("HOLDER INFOOO");
+        return firebaseUser;
+      case AuthorizationStatus.error:
+        throw PlatformException(
+          code: 'ERROR_AUTHORIZATION_DENIED',
+          message: result.error.toString(),
+        );
+
+      case AuthorizationStatus.cancelled:
+        throw PlatformException(
+          code: 'ERROR_ABORTED_BY_USER',
+          message: 'Sign in aborted by user',
+        );
+      default:
+        throw UnimplementedError();
+    }
+  }
+
+  Future<Pair> appleSignIn(User firebaseUser, String schoolName, String needsToHave) async {
+    // if (!email.contains(needsToHave))
+    print(firebaseUser.email);
+    print(firebaseUser.photoURL);
+    print(firebaseUser.displayName);
+    print("FIREBASE USER INFO");
+    Pair notWork = Pair(item1: false, item2: false);
+    Pair isStudent = Pair(item1: true, item2: false);
+
+
+    // GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+    if (firebaseUser.email!.contains(needsToHave)) {
+
+      if (firebaseUser != null) {
+        final QuerySnapshot result = await firebaseFirestore
+            .collection(FirestoreConstants.allUsersCollection)
+            .where(FirestoreConstants.id, isEqualTo: firebaseUser.uid)
+            .get();
+        final List<DocumentSnapshot> document = result.docs;
+        print(document);
+        print("CHECk IF CONTINUE?");
+        if (document.isEmpty) {
+
+          print("Is Empty?");
+          bool accepted = true;
+          if (accepted) {
+            print("IS dialog happening??");
+            firebaseFirestore
+                .collection(FirestoreConstants.allUsersCollection)
+                .doc(firebaseUser.uid)
+                .set({
+              FirestoreConstants.displayName: firebaseUser.displayName,
+              FirestoreConstants.photoUrl: firebaseUser.photoURL,
+              FirestoreConstants.id: firebaseUser.uid,
+              "createdAt: ": DateTime
+                  .now()
+                  .millisecondsSinceEpoch
+                  .toString(),
+              FirestoreConstants.chattingWith: null,
+              FirestoreConstants.email: firebaseUser.email,
+              FirestoreConstants.schoolName: schoolName,
+            });
+
+            firebaseFirestore
+                .collection('schools').doc(schoolName)
+                .collection(FirestoreConstants.pathUserCollection)
+                .doc(firebaseUser.uid)
+                .set({
+              FirestoreConstants.displayName: firebaseUser.displayName,
+              FirestoreConstants.photoUrl: firebaseUser.photoURL,
+              FirestoreConstants.id: firebaseUser.uid,
+              "createdAt: ": DateTime
+                  .now()
+                  .millisecondsSinceEpoch
+                  .toString(),
+              FirestoreConstants.chattingWith: null,
+              FirestoreConstants.email: firebaseUser.email,
+              FirestoreConstants.schoolName: schoolName
+            });
+
+            User? currentUser = firebaseUser;
+            await prefs.setString(FirestoreConstants.id, currentUser.uid);
+            await prefs.setString(
+                FirestoreConstants.displayName, currentUser.displayName ?? "");
+            await prefs.setString(
+                FirestoreConstants.photoUrl, currentUser.photoURL ?? "");
+            await prefs.setString(
+                FirestoreConstants.phoneNumber, currentUser.phoneNumber ?? "");
+            await prefs.setString(
+                FirestoreConstants.email, currentUser.email ?? "");
+            await prefs.setString(
+                FirestoreConstants.schoolName, schoolName ?? "");
+            var collection = FirebaseFirestore.instance.collection('schools').doc(schoolName).collection('users').doc(
+                currentUser.uid).collection("userMessaged");
+            collection
+                .doc('test') // <-- Document ID
+                .set({'age': 20}) // <-- Your data
+                .then((_) => print('Added'))
+                .catchError((error) => print('Add failed: $error'));
+          }
+          else {
+            _status = Status.authenticateCanceled;
+            return notWork;
+          }
+        } else {
+          DocumentSnapshot documentSnapshot = document[0];
+          ChatUser userChat = ChatUser.fromDocument(documentSnapshot);
+          await prefs.setString(FirestoreConstants.id, userChat.id);
+          await prefs.setString(
+              FirestoreConstants.displayName, userChat.displayName);
+          await prefs.setString(FirestoreConstants.aboutMe, userChat.aboutMe);
+          await prefs.setString(FirestoreConstants.testing, userChat.testing);
+          await prefs.setString(FirestoreConstants.isTutor, userChat.isTutor);
+          await prefs.setString(
+              FirestoreConstants.photoUrl, userChat.photoUrl);
+          await prefs.setString(
+              FirestoreConstants.phoneNumber, userChat.phoneNumber);
+          await prefs.setString(
+              FirestoreConstants.email, userChat.email);
+          await prefs.setString(
+              FirestoreConstants.schoolName, userChat.schoolName);
+        }
+        _status = Status.authenticated;
+        notifyListeners();
+
+        LinkedHashMap<String, dynamic>? holdsData;
+
+        var collection = FirebaseFirestore.instance.collection('schools').doc(schoolName).collection('allowed_email');
+        var docSnapshot = await collection.doc('allowed_email').get();
+        List<dynamic> holder = [];
+        if (docSnapshot.exists) {
+          Map<String, dynamic>? data = docSnapshot.data();
+          print(data);
+          holder = data!['emails'] as List<dynamic>;
+        }
+        print(holder);
+        print("HOLDERR");
+        return isStudent;
+      } else {
+        _status = Status.authenticateError;
+        notifyListeners();
+        return notWork;
+      }
+    } else {
+      _status = Status.authenticateCanceled;
+      notifyListeners();
+      return notWork;
+    }
+  }
+
+
+
+
+
+
+
+
 }

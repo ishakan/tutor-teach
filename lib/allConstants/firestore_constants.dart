@@ -1,31 +1,25 @@
 class FirestoreConstants {
   static const pathUserCollection = "users";
+  static const allUsersCollection = "allUsers";
   static const pathMessageCollection = "messages";
   static const badMessages = "bad_messages";
   static const displayName = "displayName";
+  static const schoolName = "schoolName";
   static const aboutMe = "aboutMe";
   static const testing = "testing";
   static const photoUrl = "photoUrl";
+  static const accessToken = "accessToken";
   static const phoneNumber = "phoneNumber";
   static const isTutor = "isTutor";
-  static const bioState = "bioState";
-  // static const mathState = "mathState";
-  // static const historyState = "historyState";
-  // static const artState = "artState";
-  // static const humanGeoState = "humanGeoState";
-  // static const civicsState = "civicsState";
-  // static const physicsState = "physicsState";
-  // static const elaState = "elaState";
-  // static const languageState = "languageState";
   static const senderPhoto = "senderPhoto";
   static const receiverPhoto = "recieverPhoto";
   static const nameFrom = "nameFrom";
   static const nameTo = "nameTo";
   static const id = "id";
+  static const fcmToken = "fcmToken";
   static const chattingWith = "chattingWith";
   static const likes = "likes";
   static const bookMarked = "bookMarked";
-  // static const bookMarkedPosts = "bookMarkedPosts";
   static const idFrom = "idFrom";
   static const idTo = "idTo";
   static const timestamp = "timestamp";
@@ -36,4 +30,15 @@ class FirestoreConstants {
   static const content = "content";
   static const type = "type";
   static const email = "email";
+  static const id_of_peron_who_reported_post = "id_of_peron_who_reported_post";
+  static const poster_id = "poster_id";
+  static const post_id = "post_id";
+  static const user_id = "user_id";
+  static const id_of_peron_who_reported_user = "id_of_peron_who_reported_user";
+  static const user_one = "user_one";
+  static const user_two = "user_two";
 }
+
+/**
+ * Setting constant labels for accessing values in Firebase Database
+ */

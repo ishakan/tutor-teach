@@ -6,6 +6,13 @@ class HomeProvider {
 
   HomeProvider({required this.firebaseFirestore});
 
+  /**
+   * updates Data from Firestroe by using collectionPath
+   * @param collectionPath
+   * @param path
+   * @param updateData
+   */
+
   Future<void> updateFirestoreData(
       String collectionPath, String path, Map<String, dynamic> updateData) {
     return firebaseFirestore
@@ -13,6 +20,13 @@ class HomeProvider {
         .doc(path)
         .update(updateData);
   }
+
+  /**
+   * gets Data from Firestroe by using collectionPath
+   * @param collectionPath
+   * @param limit
+   * @param textSearch
+   */
 
   Stream<QuerySnapshot> getFirestoreData(
       String collectionPath, int limit, String? textSearch) {
@@ -30,3 +44,8 @@ class HomeProvider {
     }
   }
 }
+
+// message notifications
+// typing messages
+// colors
+// uploading onto app store!

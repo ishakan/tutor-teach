@@ -29,15 +29,19 @@ void main() async {
   ));
 }
 
+/**
+ * connects main pages together
+ */
+
 class MyApp extends StatelessWidget {
   final SharedPreferences prefs;
   final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
   final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
 
   MyApp({Key? key, required this.prefs}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
+    print("first log message");
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<AuthProvider>(
@@ -61,7 +65,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'TutorTeach',
+        title: 'EdiFLy',
         theme: appTheme,
         home: const SplashPage(),
       ),

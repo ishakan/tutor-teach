@@ -37,3 +37,7 @@ const Widget vertical30 = SizedBox(height: 30.0);
 
 const Widget vertical50 = SizedBox(height: 50.0);
 const Widget vertical120 = SizedBox(height: 120.0);
+
+/**
+ * Creating constant varaibles for both size and styles
+ */
