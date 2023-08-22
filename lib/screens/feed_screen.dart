@@ -55,19 +55,33 @@ class _FeedScreenState extends State<FeedScreen> {
           ? null
           :
       AppBar(
-          automaticallyImplyLeading: false,
-          elevation: 0,
-          centerTitle: true,
-          // leading: IconButton(
-          //     onPressed: () => googleSignOut(currentUserId),
-          //     icon: const Icon(Icons.logout)), // you can put Icon as well, it accepts any widget.
-          title: const Text('Service Opportunities'),
+        backgroundColor: Colors.white,
+        automaticallyImplyLeading: false,
+        elevation: 0,
+        centerTitle: true,
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1.0), // Set the height of the line
+          child: Container(
+            color: AppColors.greyColor, // Set the color of the line
+            height: 1.0, // Set the height of the line
+          ),
+        ),
+        title: const Text(
+          'Service Opportunities',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: AppColors.spaceLight,
+            fontFamily: 'Gilroy',
+            fontWeight: FontWeight.w200,
+            fontSize: Sizes.dimen_24,
+          ),
+        ),
           actions: [
 
             IconButton(
               icon: const Icon(
                 Icons.bookmark_border,
-                color: primaryColor,
+                color: Colors.black,
 
               ),
               onPressed: () {
@@ -81,7 +95,7 @@ class _FeedScreenState extends State<FeedScreen> {
             IconButton(
               icon: const Icon(
                 Icons.add_circle_outline,
-                color: primaryColor,
+                color: Colors.black,
 
               ),
               onPressed: () {
@@ -92,56 +106,15 @@ class _FeedScreenState extends State<FeedScreen> {
               },
 
             ),
-          ]),
-      //     : AppBar(
-      //   automaticallyImplyLeading: false,
-      //   elevation: 0,
-      //   backgroundColor: AppColors.spaceCadet,
-      //   centerTitle: false,
-      //   title: const Text(
-      //     'Service Opportunities',
-      //     style: TextStyle(color: Colors.white),
-      //   ),
-      //
-      //   actions: [
-      //
-      //     IconButton(
-      //       icon: const Icon(
-      //         Icons.bookmark_border,
-      //         color: primaryColor,
-      //
-      //       ),
-      //       onPressed: () {
-      //         Navigator.push(
-      //           context,
-      //           MaterialPageRoute(builder: (context) => SavedPosts(schoolName: widget.schoolName)),
-      //         );
-      //       },
-      //
-      //     ),
-      //     IconButton(
-      //       icon: const Icon(
-      //         Icons.add_circle_outline,
-      //         color: primaryColor,
-      //
-      //       ),
-      //       onPressed: () {
-      //         Navigator.push(
-      //           context,
-      //           MaterialPageRoute(builder: (context) => FixedUpPost(schoolName: widget.schoolName)),
-      //         );
-      //       },
-      //
-      //     ),
-      //   ],
-      // ),
+          ]
+      ),
       body:
       WillPopScope(
         onWillPop: onBackPress,
         child: Stack(
           children: [
             Container(
-              color: AppColors.white,
+              color: Colors.white,
               child:
               Column(
                 children: [
@@ -163,7 +136,7 @@ class _FeedScreenState extends State<FeedScreen> {
                         ),
                         Text(
                           widget.schoolName,
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, fontFamily: 'Gilroy'),
                         ),
                       ],
                     ),
@@ -203,7 +176,7 @@ class _FeedScreenState extends State<FeedScreen> {
                             );
                         } else {
                           return const Center(
-                            child: Text('No current service posts...'),
+                            child: Text('No current service posts...', style: TextStyle(fontFamily: 'Gilroy',),),
                           );
                         }
                       },

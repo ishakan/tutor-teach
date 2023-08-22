@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_firebase_signin/allWidgets/post_card.dart';
 import 'package:google_firebase_signin/allWidgets/user_card.dart';
+import 'package:google_firebase_signin/login/fluttter_engine_group.dart';
 import 'package:google_firebase_signin/models/post.dart';
 import 'package:google_firebase_signin/screens/alltutors.dart';
 import 'package:google_firebase_signin/screens/goToTutors.dart';
@@ -98,7 +99,7 @@ class _HomePage2State extends State<HomePage2> {
     // await googleSignIn.disconnect();
     // await googleSignIn.signOut();
     Navigator.push(
-        context, MaterialPageRoute(builder: (context) => const LoginPage()));
+        context, MaterialPageRoute(builder: (context) => FlutterEngineGroup()));
 
   }
 
@@ -222,7 +223,7 @@ class _HomePage2State extends State<HomePage2> {
       currentUserId = authProvider.getFirebaseUserId()!;
     } else {
       Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const LoginPage()),
+          MaterialPageRoute(builder: (context) => FlutterEngineGroup()),
               (Route<dynamic> route) => false);
     }
 
@@ -248,13 +249,31 @@ class _HomePage2State extends State<HomePage2> {
     int webScreenSize = widd + 1;
     return Scaffold(
       appBar: AppBar(
+          backgroundColor: Colors.white,
           automaticallyImplyLeading: false,
           elevation: 0,
           centerTitle: true,
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(1.0), // Set the height of the line
+            child: Container(
+              color: AppColors.greyColor, // Set the color of the line
+              height: 1.0, // Set the height of the line
+            ),
+          ),
           leading: IconButton(
               onPressed: () => googleSignOut(currentUserId),
-              icon: const Icon(Icons.logout)), // you can put Icon as well, it accepts any widget.
-          title: const Text('EdiFly'),
+              icon: const Icon(Icons.logout,    color: Colors.black, // Replace with your desired color
+              )),// you can put Icon as well, it accepts any widget.
+          title: const Text(
+            'EdiFly',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppColors.spaceLight,
+              fontFamily: 'Gilroy',
+              fontWeight: FontWeight.w200,
+              fontSize: Sizes.dimen_28,
+            ),
+          ),
           actions: [
             IconButton(
                 onPressed: () {
@@ -263,7 +282,8 @@ class _HomePage2State extends State<HomePage2> {
                       MaterialPageRoute(
                           builder: (context) => GoToTutorsPage(schoolName: widget.schoolName)));
                 },
-                icon: const Icon(Icons.supervisor_account_rounded)),
+                icon: const Icon(Icons.supervisor_account_rounded, size: 30, color: Colors.black, // Replace with your desired color
+                )),
             IconButton(
                 onPressed: () {
                   Navigator.push(
@@ -271,9 +291,11 @@ class _HomePage2State extends State<HomePage2> {
                       MaterialPageRoute(
                           builder: (context) => ProfilePage(schoolName: widget.schoolName)));
                 },
-                icon: const Icon(Icons.person)),
+                icon: const Icon(Icons.person, size: 30, color: Colors.black, // Replace with your desired color
+                )),
           ]),
       body: RefreshIndicator(
+        // color: Colors.white,
         onRefresh: _pullRefresh,
         child: Stack(
           children: [
@@ -282,9 +304,12 @@ class _HomePage2State extends State<HomePage2> {
               child: Visibility(
                 visible: (numOfCurrentTutors == 0),
                 child: Text("No current tutors...",           textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 18),),
+                    style: TextStyle(fontSize: 18, fontFamily: 'Gilroy'),),
               ),
             ),
+            Container(
+              color: Colors.white,
+              child:
             Column(
               children: [
                 Container(
@@ -305,7 +330,12 @@ class _HomePage2State extends State<HomePage2> {
                       ),
                       Text(
                         widget.schoolName,
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Gilroy',
+                          fontWeight: FontWeight.bold,
+                          fontSize: Sizes.dimen_20,
+                        ),
                       ),
                     ],
                   ),
@@ -344,7 +374,7 @@ class _HomePage2State extends State<HomePage2> {
                           setState(() {});
                         });
                         return Center(
-                          child: Text(display),
+                          child: Text(display, style: TextStyle(fontFamily: 'Gilroy',),),
                         );
                       }
                     },
@@ -352,6 +382,7 @@ class _HomePage2State extends State<HomePage2> {
                 ),
 
               ],
+            ),
             ),
             Positioned(
               child:
@@ -368,3 +399,6 @@ class _HomePage2State extends State<HomePage2> {
   }
 
 }
+
+// notifications, UI,
+// apple sign in

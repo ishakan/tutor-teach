@@ -13,6 +13,7 @@ class AppColors {
   static const Color burgundy = Color(0xFF880d1e);
   static const Color indyBlue = Color(0xFF414361);
   static const Color spaceCadet = Color(0xFF2a2d43);
+  static const Color grayBackground = Color(0xFFf6f9fd);
 }
 
 /**

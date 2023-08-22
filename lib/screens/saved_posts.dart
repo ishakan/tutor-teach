@@ -88,18 +88,34 @@ class _SavedPostsState extends State<SavedPosts> {
       backgroundColor: Colors.white,
       appBar: width > webScreenSize
           ? null
-          : AppBar(
-        elevation: 0,
-        backgroundColor: AppColors.spaceCadet,
+          :
+      AppBar(
+          backgroundColor: Colors.white,
+          automaticallyImplyLeading: false,
+          elevation: 0,
+          centerTitle: true,
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(1.0), // Set the height of the line
+            child: Container(
+              color: AppColors.greyColor, // Set the color of the line
+              height: 1.0, // Set the height of the line
+            ),
+          ),
+          title: const Text(
+            'Saved Posts',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppColors.spaceLight,
+              fontFamily: 'Gilroy',
+              fontWeight: FontWeight.w200,
+              fontSize: Sizes.dimen_24,
+            ),
+          ),
         leading: IconButton(
             onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back)), //
-        centerTitle: false,
-        title: const Text(
-          'Saved Posts',
-          style: TextStyle(color: Colors.white),
-        ),
+            icon: const Icon(Icons.arrow_back), color: Colors.black,),
       ),
+
       body: WillPopScope(
         onWillPop: onBackPress,
         child: Stack(

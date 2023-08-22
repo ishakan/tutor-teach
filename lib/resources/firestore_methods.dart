@@ -251,6 +251,20 @@ class FireStoreMethods {
    * @param schoolName - name of school that the user has registered under
    */
 
+  Future<String> deleteBadMessage(String postId, String schoolName) async {
+    DocumentReference _SchooldocRef =
+    _firestore.collection('schools').doc(schoolName);
+    String res = "Some error occurred";
+
+    try {
+      await _SchooldocRef.collection('bad_messages').doc(postId).delete();
+      res = 'success';
+    } catch (err) {
+      res = err.toString();
+    }
+    return res;
+  }
+
   Future<String> deletePost(String postId, String schoolName) async {
     DocumentReference _SchooldocRef =
     _firestore.collection('schools').doc(schoolName);

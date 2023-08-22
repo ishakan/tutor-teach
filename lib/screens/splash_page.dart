@@ -2,8 +2,9 @@ import 'dart:collection';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:google_firebase_signin/login/fluttter_engine_group.dart';
 import 'package:google_firebase_signin/screens/bottomBarScreen.dart';
-import 'package:google_firebase_signin/screens/bottomBarScreen_admin.dart';
+import 'package:google_firebase_signin/screens/admin/bottomBarScreen_admin.dart';
 import 'package:provider/provider.dart';
 import 'package:google_firebase_signin/allConstants/all_constants.dart';
 import 'package:google_firebase_signin/providers/auth_provider.dart';
@@ -76,7 +77,7 @@ class _SplashPageState extends State<SplashPage> {
       return;
     }
     Navigator.pushReplacement(
-        context, MaterialPageRoute(builder: (context) => const LoginPage()));
+        context, MaterialPageRoute(builder: (context) => FlutterEngineGroup()));
   }
 
   /**
@@ -93,7 +94,7 @@ class _SplashPageState extends State<SplashPage> {
             const Text(
               "Welcome to EdiFly",
               style: TextStyle(
-                  fontWeight: FontWeight.bold, fontSize: Sizes.dimen_18),
+                  fontWeight: FontWeight.bold, fontSize: Sizes.dimen_18, fontFamily: 'Gilroy'),
             ),
             Image.asset(
               'assets/images/splash.png',
@@ -106,7 +107,7 @@ class _SplashPageState extends State<SplashPage> {
             const Text(
               "Smart Chat Application",
               style: TextStyle(
-                  fontWeight: FontWeight.bold, fontSize: Sizes.dimen_18),
+                  fontWeight: FontWeight.bold, fontFamily: 'Gilroy',  fontSize: Sizes.dimen_18),
             ),
             const SizedBox(
               height: 20,

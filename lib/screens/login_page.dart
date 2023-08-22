@@ -1,10 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_firebase_signin/allConstants/size_constants.dart';
 import 'package:google_firebase_signin/auth_service.dart';
 import 'package:google_firebase_signin/models/pair.dart';
 import 'package:google_firebase_signin/screens/bottomBarScreen.dart';
-import 'package:google_firebase_signin/screens/bottomBarScreen_admin.dart';
+import 'package:google_firebase_signin/screens/admin/bottomBarScreen_admin.dart';
 import 'package:google_firebase_signin/screens/contact_page.dart';
 import 'package:provider/provider.dart';
 import 'package:google_firebase_signin/allConstants/all_constants.dart';
@@ -25,6 +26,8 @@ class _LoginPageState extends State<LoginPage> {
   String isTutor = "", schoolName = "";
   TextEditingController? isTutorController;
   TextEditingController? schoolController;
+  bool _isTextFieldFocused = false;
+  bool _isTextFieldFocused2 = false;
 
   final TextEditingController _email = TextEditingController();
   final TextEditingController _pwd = TextEditingController();
@@ -122,53 +125,142 @@ class _LoginPageState extends State<LoginPage> {
                 'Welcome to EdiFly',
                 textAlign: TextAlign.center,
                 style: TextStyle(
+                  fontFamily: 'Gilroy',
+                  fontWeight: FontWeight.w800,
                   fontSize: Sizes.dimen_26,
-                  fontWeight: FontWeight.bold,
                 ),
               ),
+              // const Text(
+              //   'Welcome to EdiFly',
+              //   textAlign: TextAlign.center,
+              //   style: TextStyle(
+              //     fontSize: Sizes.dimen_26,
+              //     fontWeight: FontWeight.bold,
+              //   ),
+              // ),
               vertical20,
               const Text(
                 'Login to continue',
                 textAlign: TextAlign.center,
                 style: TextStyle(
+                  fontFamily: 'Gilroy',
+                  fontWeight: FontWeight.w600,
                   fontSize: Sizes.dimen_22,
-                  fontWeight: FontWeight.w500,
                 ),
               ),
+              // const Text(
+              //   'Login to continue',
+              //   textAlign: TextAlign.center,
+              //   style: TextStyle(
+              //     fontSize: Sizes.dimen_22,
+              //     fontWeight: FontWeight.w500,
+              //   ),
+              // ),
               vertical30,
               Center(child: Image.asset('assets/images/back.png')),
               vertical10,
-              const Text('Enter school name:', style: TextStyle(
-                fontStyle: FontStyle.italic,
-                fontWeight: FontWeight.bold,
-                color: AppColors.spaceCadet,
-              ),),
-              TextField(
-                decoration: kTextInputDecoration.copyWith(
-                    hintText: 'School Name'),
-                controller: schoolController,
-                // decoration: kTextInputDecoration.copyWith(
-                //     hintText: 'Write about yourself...'),
-                onChanged: (value) {
-                  schoolName = value;
-                },
+              Container(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _isTextFieldFocused = true;
+                    });
+                  },
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'School Name',
+                      hintStyle: TextStyle(
+                        fontFamily: 'Gilroy',
+                        fontSize: 18, // Adjust the font size as needed
+                      ),
+                    ),
+                    style: TextStyle(fontFamily: 'Gilroy'),
+                    controller: schoolController,
+                    onChanged: (value) {
+                      schoolName = value;
+                    },
+                    onTap: () {
+                      setState(() {
+                        _isTextFieldFocused = true;
+                      });
+                    },
+                    onEditingComplete: () {
+                      setState(() {
+                        _isTextFieldFocused = false;
+                      });
+                    },
+                  ),
+
+                ),
               ),
+
+
+              // const Text('Enter school name:', style: TextStyle(
+              //   fontStyle: FontStyle.italic,
+              //   fontWeight: FontWeight.bold,
+              //   color: AppColors.spaceCadet,
+              // ),),
+              // TextField(
+              //   decoration: kTextInputDecoration.copyWith(
+              //       hintText: 'School Name'),
+              //   controller: schoolController,
+              //   // decoration: kTextInputDecoration.copyWith(
+              //   //     hintText: 'Write about yourself...'),
+              //   onChanged: (value) {
+              //     schoolName = value;
+              //   },
+              // ),
               vertical10,
-              const Text('Enter school code:', style: TextStyle(
-                fontStyle: FontStyle.italic,
-                fontWeight: FontWeight.bold,
-                color: AppColors.spaceCadet,
-              ),),
-              TextField(
-                decoration: kTextInputDecoration.copyWith(
-                    hintText: '#######'),
-                controller: isTutorController,
-                // decoration: kTextInputDecoration.copyWith(
-                //     hintText: 'Write about yourself...'),
-                onChanged: (value) {
-                  isTutor = value;
-                },
+              Container(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _isTextFieldFocused2 = true;
+                    });
+                  },
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'School Code',
+                      hintStyle: TextStyle(
+                        fontFamily: 'Gilroy',
+                        fontSize: 18, // Adjust the font size as needed
+                      ),
+                    ),
+                    style: TextStyle(fontFamily: 'Gilroy'),
+                    controller: isTutorController,
+                    onChanged: (value) {
+                      isTutor = value;
+                    },
+                    onTap: () {
+                      setState(() {
+                        _isTextFieldFocused2 = true;
+                      });
+                    },
+                    onEditingComplete: () {
+                      setState(() {
+                        _isTextFieldFocused2 = false;
+                      });
+                    },
+                  ),
+
+                ),
               ),
+              // const Text('Enter school code:', style: TextStyle(
+              //   fontStyle: FontStyle.italic,
+              //   fontWeight: FontWeight.bold,
+              //   color: AppColors.spaceCadet,
+              // ),),
+              // TextField(
+              //   decoration: kTextInputDecoration.copyWith(
+              //       hintText: '#######'),
+              //   controller: isTutorController,
+              //   // decoration: kTextInputDecoration.copyWith(
+              //   //     hintText: 'Write about yourself...'),
+              //   onChanged: (value) {
+              //     isTutor = value;
+              //   },
+              // ),
+              vertical10,
               GestureDetector(
                 onTap: () async {
                   bool checkIfGood = false;
@@ -209,7 +301,7 @@ class _LoginPageState extends State<LoginPage> {
                     // }
                   }
                 },
-                child: Image.asset('assets/images/google_login.jpg'),
+                child: Image.asset('assets/images/google_login4.png'),
               ),
               Column(
                 children: [
@@ -295,12 +387,12 @@ class _LoginPageState extends State<LoginPage> {
                       alignment: Alignment.center,
                       child: Text("Don't have a school code. Contact Us!",
                         style: TextStyle(
+                          fontFamily: 'Gilroy',
                           color: Colors.blue,
                           fontSize: 15,
                           decoration: TextDecoration.underline,
                           decorationStyle: TextDecorationStyle.solid,
                           decorationColor: Colors.blue,
-
                         ),),
                     ),
                   ),

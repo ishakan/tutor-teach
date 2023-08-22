@@ -198,7 +198,7 @@ class _UserCardState extends State<UserCard> {
                             alignment: Alignment.centerLeft,
                             child: Text(
                               peerName,
-                              style: const TextStyle(color: Colors.black),
+                              style: const TextStyle(color: Colors.black, fontFamily: 'Gilroy',),
                             ),
                           ),
                           vertical5,
@@ -209,7 +209,7 @@ class _UserCardState extends State<UserCard> {
                                 child: Text(previousMessage + " ",
                                   style: const TextStyle(
                                       fontSize: 15,
-                                      color: Colors.black, fontWeight: FontWeight.bold),
+                                      color: Colors.black, fontFamily: 'Gilroy', fontWeight: FontWeight.bold),
                                 ),
                               ),
                               Align(
@@ -221,7 +221,7 @@ class _UserCardState extends State<UserCard> {
                                 ),
                                   style: const TextStyle(
                                       fontSize: 15,
-                                      color: Colors.grey, fontWeight: FontWeight.bold),
+                                      color: Colors.grey, fontFamily: 'Gilroy', fontWeight: FontWeight.bold),
                                 ),
                               ),
                             ],
@@ -246,7 +246,7 @@ class _UserCardState extends State<UserCard> {
                               onTap: () {
                                 toggleBlockState();
                               },
-                              child: Text(blockButtonText),
+                              child: Text(blockButtonText, style: TextStyle(fontFamily: 'Gilroy'),),
                             ),
                          ),
                           PopupMenuItem(
@@ -255,7 +255,7 @@ class _UserCardState extends State<UserCard> {
                               onTap: () {
                                 reportUser(widget.snap['idTo'].toString());
                               },
-                              child: Text('Report User'),
+                              child: Text('Report User', style: TextStyle(fontFamily: 'Gilroy'),),
                             ),
                           ),
                         ],

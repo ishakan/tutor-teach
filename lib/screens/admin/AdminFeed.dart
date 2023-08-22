@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:google_firebase_signin/allConstants/all_constants.dart';
 import 'package:google_firebase_signin/allConstants/app_constants.dart';
 import 'package:google_firebase_signin/allConstants/color_constants.dart';
 import 'package:google_firebase_signin/allWidgets/saved_post_card.dart';
@@ -55,16 +56,41 @@ class _AdminFeedScreenState extends State<AdminFeedScreen> {
       backgroundColor: Colors.white24,
       appBar: width > webScreenSize
           ? null
-          : AppBar(
-        automaticallyImplyLeading: false,
-        elevation: 0,
-        backgroundColor: AppColors.spaceCadet,
-        centerTitle: false,
-        title: const Text(
-          'Service Opportunities',
-          style: TextStyle(color: Colors.white),
-        ),
+          :
+      AppBar(
+          backgroundColor: Colors.white,
+          automaticallyImplyLeading: false,
+          elevation: 0,
+          centerTitle: true,
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(1.0), // Set the height of the line
+            child: Container(
+              color: AppColors.greyColor, // Set the color of the line
+              height: 1.0, // Set the height of the line
+            ),
+          ),
+          title: const Text(
+            'Service Opportunities',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppColors.spaceLight,
+              fontFamily: 'Gilroy',
+              fontWeight: FontWeight.w200,
+              fontSize: Sizes.dimen_24,
+            ),
+          ),
       ),
+      //
+      // AppBar(
+      //   automaticallyImplyLeading: false,
+      //   elevation: 0,
+      //   backgroundColor: AppColors.spaceCadet,
+      //   centerTitle: false,
+      //   title: const Text(
+      //     'Service Opportunities',
+      //     style: TextStyle(color: Colors.white),
+      //   ),
+      // ),
       body: StreamBuilder(
         stream: _SchooldocRef.collection('posts').snapshots(),
         builder: (context,

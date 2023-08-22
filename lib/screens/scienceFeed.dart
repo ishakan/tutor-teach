@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_firebase_signin/login/fluttter_engine_group.dart';
 import 'package:google_firebase_signin/providers/profile_provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
@@ -71,7 +72,7 @@ class _scienceFeedScreenState extends State<scienceFeedScreen> {
   Future<void> googleSignOut() async {
     authProvider.googleSignOut();
     Navigator.push(
-        context, MaterialPageRoute(builder: (context) => const LoginPage()));
+        context, MaterialPageRoute(builder: (context) => FlutterEngineGroup()));
   }
 
   Future<bool> onBackPress() {
@@ -185,7 +186,7 @@ class _scienceFeedScreenState extends State<scienceFeedScreen> {
         currentUserId = authProvider.getFirebaseUserId()!;
       } else {
         Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const LoginPage()),
+            MaterialPageRoute(builder: (context) => FlutterEngineGroup()),
                 (Route<dynamic> route) => false);
       }
     });
@@ -214,7 +215,7 @@ class _scienceFeedScreenState extends State<scienceFeedScreen> {
             const Text(
               "EdiFly",
               style: TextStyle(
-                  fontWeight: FontWeight.bold, fontSize: Sizes.dimen_18),
+                  fontWeight: FontWeight.bold, fontSize: Sizes.dimen_18, fontFamily: 'Gilroy'),
             ),
             Image.asset(
               'assets/images/splash.png',
@@ -227,7 +228,7 @@ class _scienceFeedScreenState extends State<scienceFeedScreen> {
             const Text(
               "Tutors",
               style: TextStyle(
-                  fontWeight: FontWeight.bold, fontSize: Sizes.dimen_18),
+                  fontWeight: FontWeight.bold, fontSize: Sizes.dimen_18, fontFamily: 'Gilroy'),
             ),
             const SizedBox(
               height: 20,
@@ -242,11 +243,21 @@ class _scienceFeedScreenState extends State<scienceFeedScreen> {
     Scaffold(
         appBar: AppBar(
           elevation: 0,
+          backgroundColor: Colors.white,
+
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(1.0), // Set the height of the line
+            child: Container(
+              color: AppColors.greyColor, // Set the color of the line
+              height: 1.0, // Set the height of the line
+            ),
+          ),
           centerTitle: true,
           leading: IconButton(
               onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.arrow_back)), // you can put Icon as well, it accepts any widget.
-          title: Text('${widget.type} Tutors'),
+              icon: const Icon(Icons.arrow_back_ios_sharp, color: Colors.black,)), // you can put Icon as well, it accepts any widget.
+          title:
+          Text('${widget.type} Tutors', style:TextStyle(fontSize:22, color: Colors.black, fontFamily: "Gilroy", fontWeight: FontWeight.bold)),
         ),
         body: WillPopScope(
           onWillPop: onBackPress,
@@ -339,7 +350,7 @@ class _scienceFeedScreenState extends State<scienceFeedScreen> {
               buildTitle(input, subColor),
               Padding(
                   padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
-                  child: Text("No Current Tutors",  style: const TextStyle(color: Colors.grey, fontSize: 15)),
+                  child: Text("No Current Tutors",  style: const TextStyle(color: Colors.grey, fontSize: 15, fontFamily: 'Gilroy')),
               ),
             ]
         ),
@@ -419,6 +430,7 @@ class _scienceFeedScreenState extends State<scienceFeedScreen> {
     final firebaseAuth = FirebaseAuth.instance;
     if (peerId != "null") {
       return Container(
+        // color: Colors.white,
         decoration: BoxDecoration(
             border: Border.all(
               color: Colors.white,
@@ -486,9 +498,14 @@ class _scienceFeedScreenState extends State<scienceFeedScreen> {
             title: Row(
                 children: [
                   Expanded(
-                    child: Text(
+                    child:
+
+                    Text(
                       "$peerName - $gradeLevel",
-                      style: TextStyle( color: Colors.black,),
+                      style: TextStyle( color: Colors.black,
+                        fontFamily: 'Gilroy',
+                        fontWeight: FontWeight.w200,
+                        fontSize: Sizes.dimen_18,),
                       softWrap: false,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis, // new

@@ -1,8 +1,11 @@
 import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 // import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_firebase_signin/firebase_messaging.dart';
+import 'package:google_firebase_signin/login/fluttter_engine_group.dart';
 import 'package:google_firebase_signin/models/push_notification.dart';
 import 'package:google_firebase_signin/notification_service.dart';
 import 'package:google_firebase_signin/screens/bottomBarScreen.dart';
@@ -76,6 +79,24 @@ class _ChatPageState extends State<ChatPage> {
   late ChatProvider chatProvider;
   late AuthProvider authProvider;
 
+
+  void sendNotif(String title, String body_message, String fcmToken) async {
+    // Initialize Firebase Messaging service
+    final firebaseMessagingService = FirebaseMessagingService();
+    await firebaseMessagingService.initialize();
+
+    // Device token of the recipient (replace with the actual token)
+    final recipientToken = fcmToken;
+
+    // Notification details
+    final title = fcmToken;
+    final body = body_message;
+
+    // Send notification
+    firebaseMessagingService.sendNotification(recipientToken, title, body);
+    // await firebaseMessagingService.sendNotification(recipientToken, title, body);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -114,7 +135,7 @@ class _ChatPageState extends State<ChatPage> {
       currentUserId = authProvider.getFirebaseUserId()!;
     } else {
       Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const LoginPage()),
+          MaterialPageRoute(builder: (context) => FlutterEngineGroup()),
               (Route<dynamic> route) => false);
     }
     if (currentUserId.compareTo(widget.peerId) > 0) {
@@ -212,7 +233,7 @@ class _ChatPageState extends State<ChatPage> {
           msg: 'Unable to send a message. This user has you currently blocked.', backgroundColor: Colors.black);
     } else if (content.trim().isNotEmpty) {
       final filter = ProfanityFilter();
-      String original = content;
+      String original = content + "";
       content = content.toLowerCase();
       List<String> allWords = filter.wordsToFilterOutList;
       String cleanString = content;
@@ -250,6 +271,7 @@ class _ChatPageState extends State<ChatPage> {
       scrollController.animateTo(0,
           duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
 
+      // sendNotif("Title", original, fcmToken)
       // String token = "";
       // LocalNotificationService.sendNotification(title: "New message", message: content, token: token);
       // LocalNotificationService
@@ -293,15 +315,24 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(1.0), // Set the height of the line
+          child: Container(
+            color: AppColors.greyColor, // Set the color of the line
+            height: 1.0, // Set the height of the line
+          ),
+        ),
         leading: IconButton(
-            icon: Icon(Icons.arrow_back),
+            icon: Icon(Icons.arrow_back_ios, color: AppColors.spaceLight,),
             onPressed: () {
               _moveToScreen2(context);
             }),
         elevation: 0,
         centerTitle: true,
-        title: Text('Chatting with ${widget.peerNickname}'.trim()),
+        title: Text('Chatting with ${widget.peerNickname}'.trim(), style: TextStyle(fontFamily: 'Gilroy', color: Colors.black, fontWeight: FontWeight.bold),),
         actions: [
         ],
       ),
@@ -329,52 +360,73 @@ class _ChatPageState extends State<ChatPage> {
     return SizedBox(
       width: double.infinity,
       height: 50,
-      child: Row(
-        children: [
-          Container(
-            margin: const EdgeInsets.only(right: Sizes.dimen_4),
-            decoration: BoxDecoration(
-              color: AppColors.burgundy,
-              borderRadius: BorderRadius.circular(Sizes.dimen_30),
-            ),
-            child: IconButton(
-              onPressed: getImage,
-              icon: const Icon(
-                Icons.camera_alt,
-                size: Sizes.dimen_28,
-              ),
-              color: AppColors.white,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(Sizes.dimen_30),
+          border: Border.all(color: Colors.black, width: 1.0),
+        ),
+        child:
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 3, 10, 3),
+            child:
+            Row(
+              children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.burgundy,
+                      borderRadius: BorderRadius.circular(Sizes.dimen_24),
+                    ),
+                    child: IconButton(
+                      onPressed: getImage,
+                      icon: const Icon(
+                        Icons.camera_alt,
+                        size: Sizes.dimen_24,
+                      ),
+                      color: AppColors.white,
+                    ),
+                  ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: Sizes.dimen_4),
+                    child: TextField(
+                      focusNode: focusNode,
+                      textInputAction: TextInputAction.send,
+                      keyboardType: TextInputType.text,
+                      textCapitalization: TextCapitalization.sentences,
+                      controller: textEditingController,
+                      style: TextStyle(fontFamily: 'Gilroy'),
+                      decoration: InputDecoration(
+                        hintText: 'Message...',
+                        border: InputBorder.none,
+                      ),
+                      onSubmitted: (value) {
+                        onSendMessage(textEditingController.text, MessageType.text);
+                      },
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: Sizes.dimen_4),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.burgundy,
+                      borderRadius: BorderRadius.circular(Sizes.dimen_24),
+                    ),
+                    child: IconButton(
+                      onPressed: () {
+                        onSendMessage(textEditingController.text, MessageType.text);
+                      },
+                      icon: const Icon(Icons.send_rounded),
+                      color: AppColors.white,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          Flexible(
-              child: TextField(
-                focusNode: focusNode,
-                textInputAction: TextInputAction.send,
-                keyboardType: TextInputType.text,
-                textCapitalization: TextCapitalization.sentences,
-                controller: textEditingController,
-                decoration:
-                kTextInputDecoration.copyWith(hintText: 'Message...'),
-                onSubmitted: (value) {
-                  onSendMessage(textEditingController.text, MessageType.text);
-                },
-              )),
-          Container(
-            margin: const EdgeInsets.only(left: Sizes.dimen_4),
-            decoration: BoxDecoration(
-              color: AppColors.burgundy,
-              borderRadius: BorderRadius.circular(Sizes.dimen_30),
-            ),
-            child: IconButton(
-              onPressed: () {
-                onSendMessage(textEditingController.text, MessageType.text);
-              },
-              icon: const Icon(Icons.send_rounded),
-              color: AppColors.white,
-            ),
-          ),
-        ],
       ),
+
+
     );
   }
 
@@ -461,6 +513,7 @@ class _ChatPageState extends State<ChatPage> {
                 style: const TextStyle(
                     color: AppColors.lightGrey,
                     fontSize: Sizes.dimen_12,
+                    fontFamily: 'Gilroy',
                     fontStyle: FontStyle.italic),
               ),
             )
@@ -547,6 +600,7 @@ class _ChatPageState extends State<ChatPage> {
                 style: const TextStyle(
                     color: AppColors.lightGrey,
                     fontSize: Sizes.dimen_12,
+                    fontFamily: 'Gilroy',
                     fontStyle: FontStyle.italic),
               ),
             )

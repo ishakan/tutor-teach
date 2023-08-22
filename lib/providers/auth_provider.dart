@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart' show FirebaseMessaging;
 // import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -159,7 +160,11 @@ class AuthProvider extends ChangeNotifier {
       //   accessToken: googleAuth.accessToken,
       //   idToken: googleAuth.idToken,
       // );
-      String fcmToken = "";
+      // String fcmToken = "";
+
+      String? fcmToken = await FirebaseMessaging.instance.getToken();
+      print(fcmToken);
+      print("FCM TOEKENENENENE");
       // final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
       // if (defaultTargetPlatform == TargetPlatform.iOS) {
@@ -252,6 +257,46 @@ class AuthProvider extends ChangeNotifier {
             return notWork;
           }
         } else {
+          print(fcmToken);
+          print("FCM TOKEN PART 2");
+
+          // profileProvider.updateFirestoreData(
+          //     FirestoreConstants.pathUserCollection, id, updateInfo.toJson(), schoolName)
+          //     .then((value) async {
+          //   await profileProvider.setPrefs(
+          //       FirestoreConstants.displayName, displayName);
+          //   await profileProvider.setPrefs(
+          //       FirestoreConstants.phoneNumber, phoneNumber);
+          //   await profileProvider.setPrefs(
+          //     FirestoreConstants.photoUrl, photoUrl,);
+          //   await profileProvider.setPrefs(
+          //       FirestoreConstants.aboutMe,aboutMe );
+          //   await profileProvider.setPrefs(
+          //       FirestoreConstants.testing,testing );
+          //   await profileProvider.setPrefs(
+          //       FirestoreConstants.isTutor, isTutor);
+          //   await profileProvider.setPrefs(
+          //       FirestoreConstants.email, email);
+          //   await profileProvider.setPrefs(
+          //       FirestoreConstants.schoolName, schoolName);
+          //   setState(() {
+          //     isLoading = false;
+          //   });
+          //   Fluttertoast.showToast(msg: 'Update Success');
+          // }).catchError((onError) {
+          //   Fluttertoast.showToast(msg: onError.toString());
+          // });
+
+          firebaseFirestore
+              .collection('schools').doc(schoolName)
+              .collection(FirestoreConstants.pathUserCollection)
+              .doc(firebaseUser.uid)
+              .update({
+            FirestoreConstants.displayName: firebaseUser.displayName,
+            FirestoreConstants.photoUrl: firebaseUser.photoURL,
+            FirestoreConstants.fcmToken: fcmToken,
+          });
+
           DocumentSnapshot documentSnapshot = document[0];
           ChatUser userChat = ChatUser.fromDocument(documentSnapshot);
           await prefs.setString(FirestoreConstants.id, userChat.id);
@@ -269,7 +314,7 @@ class AuthProvider extends ChangeNotifier {
           await prefs.setString(
               FirestoreConstants.schoolName, userChat.schoolName);
           await prefs.setString(
-              FirestoreConstants.fcmToken, fcmToken ?? "");
+              FirestoreConstants.fcmToken, "testing if put");
 
         }
         _status = Status.authenticated;
@@ -516,12 +561,5 @@ class AuthProvider extends ChangeNotifier {
       return notWork;
     }
   }
-
-
-
-
-
-
-
 
 }

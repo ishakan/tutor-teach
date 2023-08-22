@@ -20,9 +20,11 @@ import 'package:provider/provider.dart';
 
 class badMessageCard extends StatefulWidget {
   final snap;
+  final schoolName;
   const badMessageCard({
     Key? key,
     required this.snap,
+    required this.schoolName,
   }) : super(key: key);
 
   @override
@@ -42,6 +44,7 @@ class _badMessageCardState extends State<badMessageCard> {
   String nameFrom = "";
   String nameTo = "";
   String senderPhotoUrl = "", recieverPhotoUrl = "";
+  String postId = "";
 
 
   /**
@@ -73,7 +76,19 @@ class _badMessageCardState extends State<badMessageCard> {
       senderPhotoUrl = widget.snap['senderPhoto'].toString();
       nameTo = widget.snap['nameTo'].toString();
       recieverPhotoUrl = widget.snap['recieverPhoto'].toString();
+      postId = (timestamp * -1).toString();
     });
+  }
+
+  deleteBadMessage(String postId) async {
+    try {
+      await FireStoreMethods().deleteBadMessage(postId, widget.schoolName);
+    } catch (err) {
+      showSnackBar(
+        context,
+        err.toString(),
+      );
+    }
   }
 
   @override
@@ -81,7 +96,6 @@ class _badMessageCardState extends State<badMessageCard> {
     late ProfileProvider user = context.read<ProfileProvider>();
 
     final width = MediaQuery.of(context).size.width;
-
 
     return Container(
       decoration: BoxDecoration(
@@ -95,19 +109,12 @@ class _badMessageCardState extends State<badMessageCard> {
       ),
       child: Container(
         decoration: BoxDecoration(
-            color: Color(0xffE4E4E4),
-            border: Border.all(
-              color: Colors.black,
-            ),
-            borderRadius: BorderRadius.all(Radius.circular(20))
+          color: Color(0xffE4E4E4),
+          borderRadius: BorderRadius.all(Radius.circular(20)),
         ),
-
         child: Container(
-          // decoration: new BoxDecoration(borderRadius: BorderRadius.circular(20.0)),
-          // color: Color(0xffE4E4E4),
           child: Column(
             children: [
-              // HEADER SECTION OF THE POST
               Container(
                 padding: const EdgeInsets.symmetric(
                   vertical: 4,
@@ -124,12 +131,13 @@ class _badMessageCardState extends State<badMessageCard> {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
+
                             Row(
                               children: <Widget>[
                                 Expanded(
                                   child: Padding(
                                     padding: const EdgeInsets.fromLTRB(
-                                      6, 5, 0, 5,
+                                      6, 2, 0, 5,
                                     ),
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
@@ -138,10 +146,11 @@ class _badMessageCardState extends State<badMessageCard> {
                                         Row(
                                           children: <Widget> [
                                             Text(
-                                              "Sender:      ",
-                                              style: const TextStyle(
+                                              "Sender:     ",
+                                              style: TextStyle(
                                                 color: Colors.black,
                                                 fontWeight: FontWeight.bold,
+                                                fontFamily: "Gilroy",
                                               ),
                                             ),
                                             CircleAvatar(
@@ -153,11 +162,44 @@ class _badMessageCardState extends State<badMessageCard> {
                                             Expanded(
                                               child: Text(
                                                 "   $nameFrom",
-                                                style: TextStyle( color: Colors.black87, fontWeight: FontWeight.bold),
+                                                style: TextStyle(
+                                                  color: Colors.black87,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontFamily: "Gilroy",
+                                                ),
                                                 softWrap: false,
                                                 maxLines: 10,
-                                                overflow: TextOverflow.ellipsis, // new
+                                                overflow: TextOverflow.ellipsis,
                                               ),
+                                            ),
+                                            IconButton(
+                                              icon: const Icon(Icons.more_vert),
+                                              onPressed: () {
+                                                showDialog(
+                                                  useRootNavigator: false,
+                                                  context: context,
+                                                  builder: (context) {
+                                                    return SimpleDialog(
+                                                      children: <Widget>[
+                                                        SimpleDialogOption(
+                                                          padding: const EdgeInsets.all(20),
+                                                          child: const Text("Delete Bad Message", style: TextStyle(fontFamily: 'Gilroy'),),
+                                                          onPressed: () {
+                                                            deleteBadMessage(postId);
+                                                            setState(() {
+
+                                                            });
+                                                            showSnackBar(
+                                                              context,
+                                                              'Bad Message Removed. Refresh Page.',
+                                                            );
+                                                          },
+                                                        ),
+                                                      ],
+                                                    );
+                                                  },
+                                                );
+                                              },
                                             ),
                                           ],
                                         ),
@@ -165,10 +207,11 @@ class _badMessageCardState extends State<badMessageCard> {
                                         Row(
                                           children: <Widget> [
                                             Text(
-                                              "Reciever:   ",
-                                              style: const TextStyle(
+                                              "Receiver:   ",
+                                              style: TextStyle(
                                                 color: Colors.black,
                                                 fontWeight: FontWeight.bold,
+                                                fontFamily: "Gilroy",
                                               ),
                                             ),
                                             CircleAvatar(
@@ -180,10 +223,14 @@ class _badMessageCardState extends State<badMessageCard> {
                                             Expanded(
                                               child: Text(
                                                 "   $nameTo",
-                                                style: TextStyle( color: Colors.black87, fontWeight: FontWeight.bold),
+                                                style: TextStyle(
+                                                  color: Colors.black87,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontFamily: "Gilroy",
+                                                ),
                                                 softWrap: false,
                                                 maxLines: 10,
-                                                overflow: TextOverflow.ellipsis, // new
+                                                overflow: TextOverflow.ellipsis,
                                               ),
                                             ),
                                           ],
@@ -193,18 +240,23 @@ class _badMessageCardState extends State<badMessageCard> {
                                           children: <Widget> [
                                             Text(
                                               "Content: ",
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                 color: Colors.black,
                                                 fontWeight: FontWeight.bold,
+                                                fontFamily: "Gilroy",
                                               ),
                                             ),
                                             Expanded(
                                               child: Text(
                                                 "  $content",
-                                                style: TextStyle( color: Colors.blueAccent, fontWeight: FontWeight.bold),
+                                                style: TextStyle(
+                                                  color: Colors.blueAccent,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontFamily: "Gilroy",
+                                                ),
                                                 softWrap: false,
                                                 maxLines: 10,
-                                                overflow: TextOverflow.ellipsis, // new
+                                                overflow: TextOverflow.ellipsis,
                                               ),
                                             ),
                                           ],
@@ -214,9 +266,10 @@ class _badMessageCardState extends State<badMessageCard> {
                                           children: <Widget> [
                                             Text(
                                               "Timestamp: ",
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                 color: Colors.black,
                                                 fontWeight: FontWeight.bold,
+                                                fontFamily: "Gilroy",
                                               ),
                                             ),
                                             Expanded(
@@ -226,10 +279,14 @@ class _badMessageCardState extends State<badMessageCard> {
                                                     timestamp * -1,
                                                   ),
                                                 ),
-                                                style: TextStyle( color: Colors.black54, fontWeight: FontWeight.bold),
+                                                style: TextStyle(
+                                                  color: Colors.black54,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontFamily: "Gilroy",
+                                                ),
                                                 softWrap: false,
                                                 maxLines: 10,
-                                                overflow: TextOverflow.ellipsis, // new
+                                                overflow: TextOverflow.ellipsis,
                                               ),
                                             ),
                                           ],
@@ -247,7 +304,6 @@ class _badMessageCardState extends State<badMessageCard> {
                   ],
                 ),
               ),
-              // LIKE, COMMENT SECTION OF THE POS
             ],
           ),
         ),

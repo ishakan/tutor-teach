@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_firebase_signin/allConstants/app_constants.dart';
+import 'package:google_firebase_signin/login/fluttter_engine_group.dart';
 import 'package:google_firebase_signin/screens/home_page2.dart';
 import 'package:google_firebase_signin/screens/scienceFeed.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -62,7 +63,7 @@ class _GoToTutorsPageState extends State<GoToTutorsPage> {
   Future<void> googleSignOut() async {
     authProvider.googleSignOut();
     Navigator.push(
-        context, MaterialPageRoute(builder: (context) => const LoginPage()));
+        context, MaterialPageRoute(builder: (context) =>  FlutterEngineGroup()));
   }
 
   Future<bool> onBackPress() {
@@ -97,7 +98,7 @@ class _GoToTutorsPageState extends State<GoToTutorsPage> {
       currentUserId = authProvider.getFirebaseUserId()!;
     } else {
       Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const LoginPage()),
+          MaterialPageRoute(builder: (context) => FlutterEngineGroup()),
               (Route<dynamic> route) => false);
     }
 
@@ -150,7 +151,7 @@ class _GoToTutorsPageState extends State<GoToTutorsPage> {
         textStyle: const TextStyle(fontSize: 20) );
 
     final ButtonStyle style5 =
-    ElevatedButton.styleFrom(elevation: 0.0, primary: Colors.white,
+    ElevatedButton.styleFrom(elevation: 0.0, primary: AppColors.grayBackground,
         side: BorderSide(width: 2.0, color: Colors.green,),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12), // <-- Radius
@@ -163,13 +164,32 @@ class _GoToTutorsPageState extends State<GoToTutorsPage> {
      */
 
     return Scaffold(
+        backgroundColor: Colors.white, // Set the background color to white
         appBar: AppBar(
           elevation: 0,
+          backgroundColor: Colors.white,
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(1.0), // Set the height of the line
+            child: Container(
+              color: AppColors.greyColor, // Set the color of the line
+              height: 1.0, // Set the height of the line
+            ),
+          ),
           centerTitle: true,
           leading: IconButton(
               onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.arrow_back)), // you can put Icon as well, it accepts any widget.
-          title: const Text('All Tutors'),
+              icon: const Icon(Icons.arrow_back_ios_sharp, color: Colors.black,)), // you can put Icon as well, it accepts any widget.
+          title: const Text(
+            'All Tutors',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppColors.spaceLight,
+              fontFamily: 'Gilroy',
+              fontWeight: FontWeight.w200,
+              fontSize: Sizes.dimen_28,
+            ),
+          ),
+          // const Text('All Tutors'),
         ),
         body: WillPopScope(
           onWillPop: onBackPress,
@@ -181,6 +201,7 @@ class _GoToTutorsPageState extends State<GoToTutorsPage> {
                   children: [
                     vertical25,
                     Container(
+                      color: Colors.white,
                       padding: EdgeInsets.fromLTRB(10, 7, 10, 7),
                       child: ElevatedButton(
                         style: style,
@@ -200,15 +221,17 @@ class _GoToTutorsPageState extends State<GoToTutorsPage> {
                               color: Colors.red,
                               size: 24.0,
                             ),
+
                             SizedBox(
                               width:10,
                             ),
-                            Text("Science", style:TextStyle(fontSize:22, color: Colors.red, fontWeight: FontWeight.bold)),
+                            Text("Science", style:TextStyle(fontSize:22, color: Colors.red, fontFamily: "Gilroy", fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ),
                     ),
                     Container(
+                      color: Colors.white,
                       padding: EdgeInsets.fromLTRB(10, 7, 10, 7),
                       child: ElevatedButton(
                         style: style2,
@@ -230,12 +253,13 @@ class _GoToTutorsPageState extends State<GoToTutorsPage> {
                             SizedBox(
                               width:10,
                             ),
-                            Text("Math", style:TextStyle(fontSize:22, color: Colors.yellow, fontWeight: FontWeight.bold)),
+                            Text("Math", style:TextStyle(fontSize:22, color: Colors.yellow, fontFamily: "Gilroy", fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ),
                     ),
                     Container(
+                      color: Colors.white,
                       padding: EdgeInsets.fromLTRB(10, 7, 10, 7),
                       child: ElevatedButton(
                         style: style3,
@@ -256,12 +280,13 @@ class _GoToTutorsPageState extends State<GoToTutorsPage> {
                             SizedBox(
                               width:10,
                             ),
-                            Text("Literature", style:TextStyle(fontSize:22, color: Colors.blue, fontWeight: FontWeight.bold)),
+                            Text("Literature", style:TextStyle(fontSize:22, color: Colors.blue, fontFamily: "Gilroy", fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ),
                     ),
                     Container(
+                      color: Colors.white,
                       padding: EdgeInsets.fromLTRB(10, 7, 10, 7),
                       child: ElevatedButton(
                         style: style4,
@@ -282,12 +307,13 @@ class _GoToTutorsPageState extends State<GoToTutorsPage> {
                             SizedBox(
                               width:10,
                             ),
-                            Text("Language", style:TextStyle(fontSize:22, color: Colors.orange, fontWeight: FontWeight.bold)),
+                            Text("Language", style:TextStyle(fontSize:22, color: Colors.orange, fontFamily: "Gilroy", fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ),
                     ),
                     Container(
+                      color: Colors.white,
                       padding: EdgeInsets.fromLTRB(10, 7, 10, 7),
                       child: ElevatedButton(
                         style: style5,
@@ -301,16 +327,29 @@ class _GoToTutorsPageState extends State<GoToTutorsPage> {
                         child: Wrap(
                           children: <Widget>[
                             Icon(
-                              Icons.history_edu_outlined,
+                              Icons.history_edu_outlined ,
                               color: Colors.green,
                               size: 24.0,
                             ),
                             SizedBox(
                               width:10,
                             ),
-                            Text("Humanities", style:TextStyle(fontSize:22, color: Colors.green, fontWeight: FontWeight.bold)),
+                            Text("Humanities", style:TextStyle(fontSize:22, color: Colors.green, fontFamily: "Gilroy", fontWeight: FontWeight.bold)),
                           ],
                         ),
+                        // child: Wrap(
+                        //   children: <Widget>[
+                        //     Icon(
+                        //       Icons.history_edu_outlined,
+                        //       color: Colors.green,
+                        //       size: 24.0,
+                        //     ),
+                        //     SizedBox(
+                        //       width:10,
+                        //     ),
+                        //     Text("Humanities", style:TextStyle(fontSize:22, color: Colors.green, fontFamily: "Gilroy", fontWeight: FontWeight.bold)),
+                        //   ],
+                        // ),
                       ),
                     ),
                   ],

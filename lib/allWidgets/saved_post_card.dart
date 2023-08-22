@@ -247,6 +247,7 @@ class _SavedPostCardState extends State<SavedPostCard> {
                                     widget.snap['displayName'].toString(),
                                     style: const TextStyle(
                                       color: Colors.black,
+                                      fontFamily: 'Gilroy',
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -261,7 +262,8 @@ class _SavedPostCardState extends State<SavedPostCard> {
                                   Expanded(
                                     child: Text(
                                       widget.snap['post_title'].toString(),
-                                      style: TextStyle(color: Colors.blueAccent,
+                                      style: TextStyle(fontFamily: 'Gilroy',
+                                          color: Colors.blueAccent,
                                           fontWeight: FontWeight.bold),
                                       softWrap: false,
                                       maxLines: 2,
@@ -299,7 +301,7 @@ class _SavedPostCardState extends State<SavedPostCard> {
                                             .toString() == id || widget.isAdmin),
                                         child: SimpleDialogOption(
                                             padding: const EdgeInsets.all(20),
-                                            child: const Text('Delete Post'),
+                                            child: const Text('Delete Post', style: TextStyle(fontFamily: 'Gilroy',)),
                                             onPressed: () {
                                               deletePost(
                                                 widget.snap['postId']
@@ -309,7 +311,7 @@ class _SavedPostCardState extends State<SavedPostCard> {
                                       ),
                                       SimpleDialogOption(
                                         padding: const EdgeInsets.all(20),
-                                        child: const Text("Report Post"),
+                                        child: const Text("Report Post", style: TextStyle(fontFamily: 'Gilroy',),),
                                         onPressed: () {
                                           deletePost(
                                             widget.snap['postId']
@@ -390,6 +392,7 @@ class _SavedPostCardState extends State<SavedPostCard> {
                             children: [
                               TextSpan(
                                 text: ' ${widget.snap['post_description']}',
+                                style: TextStyle(fontFamily: 'Gilroy',)
                               ),
                             ],
                           ),
@@ -400,6 +403,7 @@ class _SavedPostCardState extends State<SavedPostCard> {
                           widget.snap['timestamp'].toString(),
                           style: const TextStyle(
                             color: secondaryColor,
+                            fontFamily: 'Gilroy',
                           ),
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 2),
@@ -492,6 +496,7 @@ class _SavedPostCardState extends State<SavedPostCard> {
                             '${widget.snap['likes'].length} like' :
                             '${widget.snap['likes'].length} likes',
                             style: TextStyle(
+                                fontFamily: 'Gilroy',
                                 fontWeight: FontWeight.bold, fontSize: Sizes
                                 .dimen_14),
                             // style: Theme.of(context).textTheme.bodyText2,

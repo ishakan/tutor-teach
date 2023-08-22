@@ -37,6 +37,15 @@ class FirestoreConstants {
   static const id_of_peron_who_reported_user = "id_of_peron_who_reported_user";
   static const user_one = "user_one";
   static const user_two = "user_two";
+  static const approved = "approved";
+  static const id_waiting = "id_waiting";
+  static const timestamp_waiting = "timestamp_waiting";
+  static const gradeLevel_waiting = "gradeLevel_waiting";
+  static const fcmToken_waiting = "fcmToken_waiting";
+  static const databaseid_stored = "databaseid_stored";
+  static const personid_waiting = "personid_waiting";
+  static const name_waiting = "name_waiting";
+  static const photoUrl_waiting = "photoUrl_waiting";
 }
 
 /**

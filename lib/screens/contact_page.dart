@@ -102,14 +102,16 @@ class _ContactPageState extends State<ContactPage> {
               height: 12,
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.indyBlue,
+              style: ElevatedButton.styleFrom(
+                primary: AppColors.indyBlue,
                 minimumSize: Size.fromHeight(50),
                 textStyle: TextStyle(fontSize: 20),
                 elevation: 0,
               ),
-                child: Text("Send Message"),
-                onPressed: () => sendEmail(),
+              onPressed: () => sendEmail(),
+              child: Text("Send Message"),
             )
+
           ],
         )
       ),

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_firebase_signin/allConstants/all_constants.dart';
 import 'package:google_firebase_signin/models/post.dart';
 import 'package:google_firebase_signin/screens/alltutors.dart';
 import 'package:google_firebase_signin/screens/feed_screen.dart';
@@ -46,24 +47,43 @@ class _bottomBarScreenState extends State<bottomBarScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.white,
-        body: _pageOptions[selectedPage],
-        bottomNavigationBar: BottomNavigationBar(
+      backgroundColor: Colors.white,
+      body: _pageOptions[selectedPage],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(
+              color: AppColors.greyColor,
+              width: 1.0,
+            ),
+          ),
+        ),
+        child: BottomNavigationBar(
           items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home_filled, size: 30), label: "Home"),
-            BottomNavigationBarItem(icon: Icon(Icons.add_to_photos_outlined, size: 30), label: "Posts"),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_filled, size: 30),
+              label: "Home",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.add_to_photos_outlined, size: 30),
+              label: "Posts",
+            ),
           ],
           selectedItemColor: const Color(0xFF141848),
           elevation: 0.0,
           unselectedItemColor: Colors.indigo,
           currentIndex: selectedPage,
+          selectedLabelStyle: TextStyle(fontFamily: 'Gilroy', fontSize: 14),
+          unselectedLabelStyle: TextStyle(fontFamily: 'Gilroy', fontSize: 14),
           backgroundColor: Colors.white54,
-          onTap: (index){
+          onTap: (index) {
             setState(() {
               selectedPage = index;
             });
           },
-        )
+        ),
+      ),
     );
   }
+
 }

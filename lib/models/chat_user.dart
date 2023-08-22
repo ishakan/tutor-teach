@@ -16,6 +16,7 @@ class ChatUser extends Equatable {
   final String email;
   final String schoolName;
   final String fcmToken;
+  final String approved;
 
   const ChatUser(
       {required this.id,
@@ -28,6 +29,7 @@ class ChatUser extends Equatable {
       required this.email,
       required this.schoolName,
       required this.fcmToken,
+      required this.approved,
       });
 
   /**
@@ -45,6 +47,7 @@ class ChatUser extends Equatable {
     String? email_address,
     String? school_name,
     String? fcmToken,
+    String? approved,
 
   }) {
     return ChatUser(
@@ -57,7 +60,8 @@ class ChatUser extends Equatable {
           isTutor: tutor ?? isTutor,
           email: email_address ?? this.email,
           schoolName: school_name ?? this.schoolName,
-          fcmToken: fcmToken ?? this.fcmToken);
+          fcmToken: fcmToken ?? this.fcmToken,
+          approved: approved ?? this.approved,);
   }
 
 
@@ -71,6 +75,7 @@ class ChatUser extends Equatable {
         FirestoreConstants.email: email,
         FirestoreConstants.schoolName: schoolName,
         FirestoreConstants.fcmToken: fcmToken,
+        FirestoreConstants.approved : approved,
   };
   factory ChatUser.fromDocument(DocumentSnapshot snapshot) {
     String photoUrl = "";
@@ -82,6 +87,7 @@ class ChatUser extends Equatable {
     String email = "";
     String schoolName = "";
     String fcmToken = "";
+    String approved = "";
 
     try {
       photoUrl = snapshot.get(FirestoreConstants.photoUrl);
@@ -93,6 +99,7 @@ class ChatUser extends Equatable {
       email = snapshot.get(FirestoreConstants.email);
       schoolName = snapshot.get(FirestoreConstants.schoolName);
       fcmToken = snapshot.get(FirestoreConstants.fcmToken);
+      approved = snapshot.get(FirestoreConstants.approved);
 
     } catch (e) {
       if (kDebugMode) {
@@ -112,7 +119,8 @@ class ChatUser extends Equatable {
         isTutor: isTutor,
         email: email,
         schoolName: schoolName,
-        fcmToken: fcmToken);
+        fcmToken: fcmToken,
+        approved: approved);
   }
 
   static ChatUser fromSnap(DocumentSnapshot snap) {
@@ -128,12 +136,13 @@ class ChatUser extends Equatable {
       isTutor: snapshot["isTutor"],
       email: snapshot["email"],
       schoolName: snapshot["schoolName"],
-      fcmToken: snapshot["fcmToken"]);
+      fcmToken: snapshot["fcmToken"],
+      approved: snapshot["approved"]);
 
   }
 
   // , historyState, mathState, artState, humanGeoState, civicsState, physicsState, elaState, languageState
   @override
   // TODO: implement props
-  List<Object?> get props => [id, photoUrl, displayName, phoneNumber, aboutMe, testing, isTutor, email, schoolName, fcmToken];
+  List<Object?> get props => [id, photoUrl, displayName, phoneNumber, aboutMe, testing, isTutor, email, schoolName, fcmToken, approved];
 }

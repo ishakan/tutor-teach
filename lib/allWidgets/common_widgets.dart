@@ -69,7 +69,7 @@ Widget messageBubble(
     ),
     child: Text(
       chatContent,
-      style: TextStyle(fontSize: 15, color: textColor),
+      style: TextStyle(fontSize: 15, fontFamily: 'Gilroy', color: textColor),
     ),
   );
 }
